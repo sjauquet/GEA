@@ -1222,10 +1222,11 @@ if (not GEA) then
 					local id = GEA.getId(entry, entry[GEA.keys["PARAMS"]][i])
 					if (id > 0) then 
 						local etat = fibaro:getValue(tonumber(id), "value")
-						if (GEA.match(type, "rgb_driver") and  (tonumber(fibaro:getValue(tonumber(id), "value")) > 0 ) or tonumber(fibaro:getValue(tonumber(id), "currentProgramID")) > 0) then
+						local type = fibaro:getType(tonumber(id))
+						if (GEA.match(type, "rgb_driver") and  ((tonumber(fibaro:getValue(tonumber(id), "value")) > 0) or (tonumber(fibaro:getValue(tonumber(id), "currentProgramID")) > 0))) then
 							-- verison 3.x
 							etat = 1
-						elseif (GEA.match(type, "com.fibaro.FGRGBW441M") and (tonumber(fibaro:getValue(tonumber(id), "value")) > 0 and not fibaro:getValue(tonumber(id), "color") == "0,0,0,0") or tonumber(fibaro:getValue(tonumber(id), "currentProgramID")) > 0) then
+						elseif (GEA.match(type, "com.fibaro.FGRGBW441M") and ((tonumber(fibaro:getValue(tonumber(id), "value")) > 0) and (not fibaro:getValue(tonumber(id), "color") == "0,0,0,0") or (tonumber(fibaro:getValue(tonumber(id), "currentProgramID")) > 0))) then
 							-- verison 4.x
 							etat = 1
 						end						
