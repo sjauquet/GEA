@@ -11,7 +11,7 @@
 --]]
 
 
--- v 5.01
+-- v 5.02
 -- RGB is on in 4.20b and 3.x
 -- Global inc+ et dec-
 
@@ -29,7 +29,7 @@
 -- it requires some knowledge
 --
 -- Auteur : Steven P. with modification of Hansolo and Shyrka973
--- Version : 5.01
+-- Version : 5.02
 -- Special Thanks to :
 -- jompa68, Fredric, Diuck, Domodial, moicphil, lolomail, byackee,
 -- JossAlf, Did, jompa98 and all other guy from Domotique-fibaro.fr
@@ -250,7 +250,7 @@ end
 if (not GEA) then
 	
 	GEA = {}
-	GEA.version = "5.01"
+	GEA.version = "5.02"
 	GEA.language = "FR";
 	GEA.checkEvery = 30
 	GEA.index = 0
