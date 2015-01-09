@@ -7,13 +7,13 @@
 56 value
 25 value
 112 value
+39 value
 %% globals
 --]]
 
 
--- v 5.02
--- RGB is on in 4.20b and 3.x
--- Global inc+ et dec-
+-- v 5.10
+-- all bug fix (rgb + startProgram + global with match)
 
 -- ==================================================
 -- GEA : Gestionnaire d'Evénements Automatique
@@ -29,7 +29,7 @@
 -- it requires some knowledge
 --
 -- Auteur : Steven P. with modification of Hansolo and Shyrka973
--- Version : 5.02
+-- Version : 5.10
 -- Special Thanks to :
 -- jompa68, Fredric, Diuck, Domodial, moicphil, lolomail, byackee,
 -- JossAlf, Did, jompa98 and all other guy from Domotique-fibaro.fr
@@ -61,11 +61,7 @@ function yourcode()
 	-- [FR] Affichage des traces dans la console (default : false)
 	-- [EN] Show trace in the debug window
 	GEA.debug = false
-	
-	-- [FR] Ne capture pas les erreurs, stop GEA en indiquant le message d'erreur
-	-- [FR] A utiliser que pour un débugage
-	-- [EN] Don't catch error, stop GEA and show the error message, use it only for debugging purpose.
-	--GEA.catchError = false
+ -- GEA.catchError=false
 
 	-- [FR] Tableau d'identifiant (facultatif)
 	-- [EN] ID table (optional)
@@ -76,16 +72,18 @@ function yourcode()
 		LAVE_LINGE = 120,
 		LAMPE_NOLAN = 21, LAMPE_KENDRA = 23, LAMPE_NORA = 18,
 		PORTE_NORA = 143, PORTE_NOLAN = 149, PORTE_KENDRA = 145,
-		TEMP_SALON = 98, TV = 39, ROOMBA = 43, VD_BSO = 105,
+		TEMP_SALON = 98, TV = 39, WII=40, ROOMBA = 43, VD_BSO = 105, HIFI = 42,
 		POELE = 34, VD_SALON = 107, VD_KAROTZ = 133,
 		LAMPE_ESCALIER	 = 25, PORTE_TERRASSE = -9,
-		FRIGO = 52, SIRENE = -30, SMOKE_SENSOR = 46, RGB = 274,
+    	SPOTS = 230, 
+		FRIGO = 52, SIRENE = -30, SMOKE_SENSOR = 46, RGB = 27,
 		SECHE_SERVIETTE = 60,
 		SURPRESSEUR = 118,
 		ARROSAGE = -158, TERRASSE = 160, VD_PLUIE = 139,
 		VD_NETATMO = 135,
 		VD_AGENDA = 110,
-		VD_IMPERIHOME = 208
+        VD_GARAGE = 238,
+        VD_IMPERIHOME = 208
 	}
   
 	-- ------------------------------------------------------------
@@ -105,19 +103,21 @@ function yourcode()
 	
 	-- Exemple de condition IF // IF Sample condition
   	local estChome = {"Global", "JourChome", "OUI"}
-	local estTravail = {"Global", "JourChome", "NON"}, {"Sensor-", id["TV"], 1}, {"Value-", id["DETECTEUR_GARAGE"], 1}
+	local estTravail = {"Global", "JourChome", "NON"}, {"Sensor-", id["TV"], 1}, {"Value", id["DETECTEUR_GARAGE"], 0}
 	local estSafe = {"Global", "Intrusion", "NON"}
 	local estTravailEtSafe = estTravail, estSafe
-	local estFerme = {"Value-", id["PORTE_ENTREE"], 1}, {"Global", "GEA_Garage", "ON"}
+	local estFerme = {"Value-", id["PORTE_ENTREE"], "1"}
 	local estVac = {"Global", "Chauffage", "VACANCES"}
-	local co2Correct = {"Global-", "CO2", 900}
+    local enfantsVac = {"Global", "VacScolaire", "0"}
+    local enfantsEcole = {"Global!", "VacScolaire", "0"}
+	local co2Correct = {"Global-", "CO2", "900"}
 	local garageAvertissement = {"Global", "GEA_Garage", "ON"}
-	local lampeEscalierEteinte = {"Value-", id["LAMPE_ESCALIER"], 1}
+	local lampeEscalierEteinte = {"Value", id["LAMPE_ESCALIER"], 0}
 	local lampeEscalierAllumee = {"Value+", id["LAMPE_ESCALIER"], 0}
 		
-	local wake1 = GEA.add({estTravail}, 30, "", {{"Time", "07:15", "07:20"}, {"VirtualDevice", id["VD_BSO"], "4"}, {"MaxTime", 1}, {"Days", "Monday, Tuesday, Thursday, Friday"}})
-  	local wake2 = GEA.add({estTravail}, 30, "", {{"Time", "08:00", "08:05"}, {"VirtualDevice", id["VD_BSO"], "4"}, {"MaxTime", 1}, {"Days", "Wednesday"}})
- 	local wake3 = GEA.add(estChome, 30, "", {{"Time", "09:15", "09:20"}, {"VirtualDevice", id["VD_BSO"], "4"}, {"MaxTime", 1}})
+  	local wake1 = GEA.add({estTravail, enfantsEcole}, 30, "", {{"Time", "07:15", "07:20"}, {"VirtualDevice", id["VD_BSO"], "4"}, {"turnOn", id["SPOTS"]}, {"MaxTime", 1}, {"Days", "Monday, Tuesday, Thursday, Friday"}})
+  	local wake2 = GEA.add({estTravail, enfantsEcole}, 30, "", {{"Time", "08:00", "08:05"}, {"VirtualDevice", id["VD_BSO"], "4"}, {"turnOn", id["SPOTS"]}, {"MaxTime", 1}, {"Days", "Wednesday"}})
+ 	local wake3 = GEA.add({estChome, enfantsEcole}, 30, "", {{"Time", "09:15", "09:20"}, {"VirtualDevice", id["VD_BSO"], "4"}, {"MaxTime", 1}})
   
 	-- Timer toutes les 30 mn
   	GEA.add( true , 30*60, "")
@@ -132,24 +132,26 @@ function yourcode()
 		{"Time", "01:00", "01:05"}, 
 		{"RestartTask", wake1}, 
 		{"RestartTask", wake2},
-		{"RestartTask", wake3}
+		{"RestartTask", wake3},
+        {"Global", "GEA_Garage", "ON"}
 	})
 
+ 
 	-- === Lave-Linge == --
 	GEA.add({{"Sensor+", id["LAVE_LINGE"], 1.0},{"Sensor-", id["LAVE_LINGE"], 2.5}}, 30*60, "Le lave-linge est arrêté depuis #duration#", {{"Global", "Karotz", "Le lave-linge est arrêté depuis #durationfull#"},{"VirtualDevice", id["VD_KAROTZ"],"1"},{"Repeat"}})
 	GEA.add({"Sensor-", id["LAVE_LINGE"], 1.5}, 2*60, "", {{"turnOff"}}) 
 
 	-- === GARAGE == --
 	-- Le scénario enverra un push toutes les 10mn tant que la porte sera ouverte // Send a push every 10 minutes when the door is open
-	GEA.add( id["DETECTEUR_GARAGE"], 10*60, "La porte du garage est ouverte depuis plus de #duration#", {estFerme, {"Global", "Karotz", "La porte du garage est ouverte depuis #durationfull#"},{"VirtualDevice", id["VD_KAROTZ"],"1"},{"Repeat"}})
+	GEA.add( {id["DETECTEUR_GARAGE"], estFerme, garageAvertissement}, 10*60, "La porte du garage est ouverte depuis plus de #duration#", {{"Global", "Karotz", "La porte du garage est ouverte depuis #durationfull#"},{"VirtualDevice", id["VD_KAROTZ"],"1"},{"Repeat"}})
 	-- Usage immédiat. La porte du garage s'ouvre, mon Karotz m'averti et ses oreilles basculent en direction du garage
 	-- Immediat scene. The door opens, my Korotz tel it to me and move its ear direct to the garage
-	GEA.add({ id["DETECTEUR_GARAGE"], garageAvertissement}, -1, "", {{"Global", "Karotz", "La porte du garage est ouverte"},{"VirtualDevice", id["VD_IMPERIHOME"],"7"}, {"VirtualDevice", id["VD_KAROTZ"],"1"},{"Slider", id["VD_KAROTZ"], "4", "65"},{"Slider", id["VD_KAROTZ"], "5", "65"}})
-	-- Reset des oreilles à la fermeture du garage // Ears are moving back when the door closes
-	GEA.add( id["DETECTEUR_GARAGE"], -1, "", {{"Inverse"}, {"VirtualDevice", id["VD_KAROTZ"], "7"},{"VirtualDevice", id["VD_IMPERIHOME"],"6"}})
+	GEA.add({ id["DETECTEUR_GARAGE"], garageAvertissement}, -1, "", {{"Global", "Karotz", "La porte du garage est ouverte"},{"VirtualDevice", id["VD_KAROTZ"],"1"},{"Slider", id["VD_KAROTZ"], "4", "65"},{"Slider", id["VD_KAROTZ"], "5", "65"}})
+	GEA.add( id["DETECTEUR_GARAGE"], -1, "", {{"CurrentIcon", id["VD_GARAGE"], "238"},{"VirtualDevice", id["VD_IMPERIHOME"],"7"}})
+    -- Reset des oreilles à la fermeture du garage // Ears are moving back when the door closes
+    GEA.add( id["DETECTEUR_GARAGE"], -1, "", {{"Inverse"}, {"VirtualDevice", id["VD_KAROTZ"], "7"},{"VirtualDevice", id["VD_IMPERIHOME"],"6"}, {"CurrentIcon", id["VD_GARAGE"], "239"}})
 	-- Avertissement push si la porte du garage s'ouvre à des heures non inappropriée // Push when door opens at unexptected moment
 	GEA.add ( id["DETECTEUR_GARAGE"], -1, "Ouverture de la porte du garage à #time#", {{"Time", "09:00", "16:00"}, {"Days", "Monday, Tuesday, Thursday, Friday"}})
-	GEA.add({"Global", "GEA_Garage", "OFF"}, 1*60, "", {{"Global", "GEA_Garage", "ON"}, {"Time", "00:00", "00:05"}})
 
 	-- Surpresseur
 	GEA.add({"Sensor+", id["SURPRESSEUR"], 400}, 5*60, "Supresseur éteint, vérifiez le niveau du puit", {{"turnOff", id["SUPRESSEUR"]},{"Global", "Karotz", "Vérifier l eau du puit. Surpresseur éteint"},{"VirtualDevice", id["VD_KAROTZ"],"1"}}) 
@@ -168,7 +170,7 @@ function yourcode()
 	-- Si la température du salon est inférieur à 23° on arrète la VMC pour éviter un refroidissement excessif --
 	-- sauf si la quantité de CO2 est excessive
 	-- If temperature is bellow 23° we stop the ventilation except if the CO2 is to much.
-	GEA.add({"Global-", "T_Salon", 21}, 10*60, "", {{"turnOff", id["VMC"]},{"Time","23:00","06:00"}})
+	GEA.add({ {"Global-", "T_Salon", 21}, co2Correct }, 10*60, "", {{"turnOff", id["VMC"]},{"Time","23:00","06:00"}})
 	-- On rallume la VMC si elle est éteinte. // Turn on the ventilation
 	GEA.add(id["VMC"], 1*60, "", {{"Inverse"},{"turnOn"},{"Time","06:00", "06:05"}})
 	  
@@ -209,25 +211,49 @@ function yourcode()
 
   	GEA.add( {id["PORTE_ENTREE"],{"Global", "Sortie", "0"}}, -1, "", {{"VirtualDevice", id["VD_BSO"], "4"},{"Days","Weekday"}, {"Time","16:00","19:30"}})
   
- 	-- == Roomba == --
+  	-- == Tondeuse == --
+  	--GEA.add(id["TONDEUSE"], 30, "", {{"Time", "20:00", "07:00"}, {"turnOff"}, {"MaxTime", 1}})
+	--GEA.add(id["TONDEUSE"], 30, "", {{"Inverse"}, {"Time", "07:05", "19:55"}, {"turnOn"}})
+	
+  	-- == Roomba == --
   	GEA.add(id["ROOMBA"], 30, "", {{"Time", "23:30", "23:32"}, {"turnOff"}})
 	GEA.add(id["ROOMBA"], 30, "", {{"Inverse"}, {"Time", "06:05", "06:07"}, {"turnOn"}})
+
+	GEA.add({"Sensor-", id["HIFI"], 1.5}, 10*60, "", {{"turnOff"}}) 
+
   
 	-- === KAROTZ === --
 	GEA.add(true , 30, "", {{"VirtualDevice", id["VD_KAROTZ"], "21"},{"Time", "07:00", "07:01"}})
 	GEA.add(id["TV"], 5*60, "", {{"Slider", id["VD_KAROTZ"], "9", "0"},{"Slider", id["VD_KAROTZ"], "10", "0"},{"Slider", id["VD_KAROTZ"], "11", "0"}, {"Repeat"}})
 	GEA.add(id["TV"], 60, "", {{"Inverse"}, {"VirtualDevice", id["VD_KAROTZ"], "14"}})
 	GEA.add(true, 30, "", {{"VirtualDevice", id["VD_KAROTZ"], "20"},{"Time", "23:30", "23:31"}})
-	GEA.add(id["TV"], 30, "", {{"Global", "Karotz", "Il est l heure d aller a l école"}, {"VirtualDevice", id["VD_KAROTZ"], "1"},{"Time", "07:55", "08:00"},{"Days","Monday,Tuesday,Thursday,Friday"}})
-	GEA.add(id["TV"], 30, "", {{"Global", "Karotz", "Il est l heure d aller a l école"}, {"VirtualDevice", id["VD_KAROTZ"], "1"},{"Time", "08:40", "08:45"},{"Days","Wednesday"}})
+	GEA.add(id["TV"], 30, "", {{"Scenario", 4},{"Time", "07:55", "08:00"},{"Days","Monday,Tuesday,Thursday,Friday"}})
+	GEA.add(id["TV"], 30, "", {{"Scenario", 4},{"Time", "08:40", "08:45"},{"Days","Wednesday"}})
 
-	-- ===  Sèche-serviettes === --
+	GEA.add(id["TV"], -1, "", {{"turnOn", id["WII"]}})
+  	GEA.add(id["TV"], -1, "", {{"Inverse"}, {"turnOff", id["WII"]}})
+  
+    -- ===  Sèche-serviettes === --
 	-- Allumage à 7h les jours de semaines // Switch on the radiator at 7 am on working day
 	GEA.add({id["SECHE_SERVIETTE"],estTravail}, 30, "", {{"Inverse"},{"Time", "07:00", "07:02"}, {"turnOn"}})
 	-- Allumage à 8h30 les jours de weekend // Switch on the radiator at 8:30am am on sleeping day :)
 	GEA.add({id["SECHE_SERVIETTE"], estChome}, 30, "", {{"Inverse"},{"Time", "08:30", "08:32"}, {"turnOn"}})
 	-- Eteindre après 2 heures / Switch it off after 2 hours
 	GEA.add(id["SECHE_SERVIETTE"], 2*60*60, "", {{"turnOff"}})
+
+	-- ===  Arrosage === --
+	-- On rafraichi les prévisions de pluie toutes les heures // Checking wheater every hours
+--	GEA.add(true, 60*60, "", {{"VirtualDevice", id["VD_PLUIE"], "7"}})
+	-- On calcul le besoin d'arrosage // Calculation to check if irrogator is needed
+--	GEA.add(true, 30, "", {{"VirtualDevice", id["VD_PLUIE"], "9"},{"Days", "Tuesday, Friday"}, {"Time", "04:55", "04:56"}})
+	-- Allumage de l'arrosage automatique // Switch on irrigator
+--	GEA.add({"Global", "Arrosage", "OUI"}, 30, "", {{"turnOn", id["ARROSAGE"]}, {"Days", "Tuesday"}, {"Time","05:00","08:00"}})
+--	GEA.add({"Global", "Arrosage", "PREPARATION"}, 30, "", {{"turnOn", id["ARROSAGE"]}, {"Days", "Tuesday, Friday"}, {"Time","07:30","08:00"}})
+	-- On éteint // Switch off irrigator
+--	local longarrosage = {"If", {{"Global", "Arrosage", "OUI"}}}
+--	local courtarrosage = {"If", {{"Global", "Arrosage", "PREPARATION"}}}
+--	GEA.add(id["ARROSAGE"], 2*60*60, "", {{"turnOff"}, longarrosage, {"Global", "Arrosage", "NON"}})
+--	GEA.add(id["ARROSAGE"], 30*60, "", {{"turnOff"}, courtarrosage, {"Global", "Arrosage", "NON"}})
 
 	-- === DIVERS === --
 	-- Variable global
@@ -238,7 +264,7 @@ function yourcode()
 	GEA.add({"Batteries", 60}, 24*60*60, "", {{"Repeat"}})
 
 	-- Vérification des modules parfois "dead" // Checking sometimes dead modules
-	GEA.add({"Dead", id["ARROSAGE"]}, 5*60, "", {{"WakeUp", id["ARROSAGE"]}}) -- extérieur
+--	GEA.add({"Dead", id["ARROSAGE"]}, 5*60, "", {{"WakeUp", id["ARROSAGE"]},{"WakeUp", id["TONDEUSE"]}}) -- extérieur
    
     
     -- ==================================================
@@ -250,7 +276,7 @@ end
 if (not GEA) then
 	
 	GEA = {}
-	GEA.version = "5.02"
+	GEA.version = "5.10"
 	GEA.language = "FR";
 	GEA.checkEvery = 30
 	GEA.index = 0
@@ -758,7 +784,7 @@ if (not GEA) then
 		   return type(p) == "nil"
 		end
 		s = tostring(s)
-		p = tostring(p)
+		p = tostring(p):gsub("%%", "%%%%"):gsub("-", "%%-")
 		local words = GEA.split(p, "|")
 		for i = 1, #words do
 			if (string.match(s, GEA.trim(words[i]))) then 
@@ -1222,13 +1248,15 @@ if (not GEA) then
 					local id = GEA.getId(entry, entry[GEA.keys["PARAMS"]][i])
 					if (id > 0) then 
 						local etat = fibaro:getValue(tonumber(id), "value")
-						local type = fibaro:getType(tonumber(id))
-						if (GEA.match(type, "rgb_driver") and  ((tonumber(fibaro:getValue(tonumber(id), "value")) > 0) or (tonumber(fibaro:getValue(tonumber(id), "currentProgramID")) > 0))) then
+            			local typef = fibaro:getType(tonumber(id))
+						if (GEA.match(typef, "rgb_driver") and  ((tonumber(fibaro:getValue(tonumber(id), "value")) > 0 ) or tonumber(fibaro:getValue(tonumber(id), "currentProgramID")) > 0)) then
 							-- verison 3.x
 							etat = 1
-						elseif (GEA.match(type, "com.fibaro.FGRGBW441M") and ((tonumber(fibaro:getValue(tonumber(id), "value")) > 0) and (not fibaro:getValue(tonumber(id), "color") == "0,0,0,0") or (tonumber(fibaro:getValue(tonumber(id), "currentProgramID")) > 0))) then
+						elseif (GEA.match(typef, "com.fibaro.FGRGBW441M")) then
+                			if (fibaro:getValue(tonumber(id), "color") ~= "0,0,0,0" or tonumber(fibaro:getValue(tonumber(id), "currentProgramID")) > 0) then
 							-- verison 4.x
-							etat = 1
+								etat = 1
+                  			end
 						end						
 						if (tonumber(etat) >= 1 and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "turnoff") or (tonumber(etat) == 0 and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "turnon") then 
 							fibaro:call(tonumber(id), entry[GEA.keys["PARAMS"]][i][1])
@@ -1326,7 +1354,9 @@ if (not GEA) then
 					end
 					GEA.log("sendActions", entry, "!ACTION! : RGB " .. entry[GEA.keys["PARAMS"]][i][2] ..", Color = ".. entry[GEA.keys["PARAMS"]][i][3]  ..",".. entry[GEA.keys["PARAMS"]][i][4]..",".. entry[GEA.keys["PARAMS"]][i][5]..",".. entry[GEA.keys["PARAMS"]][i][6])
 				elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "program" and #entry[GEA.keys["PARAMS"]][i] > 2) then
-					fibaro:call(entry[GEA.keys["PARAMS"]][i][2], "startProgram", entry[GEA.keys["PARAMS"]][i][3])
+					--if (tonumber(fibaro:getValue(tonumber(entry[GEA.keys["PARAMS"]][i][2]), "currentProgramID")) ~= tonumber(entry[GEA.keys["PARAMS"]][i][3])) then			
+          				fibaro:call(entry[GEA.keys["PARAMS"]][i][2], "startProgram", entry[GEA.keys["PARAMS"]][i][3])
+              		--end
 					GEA.log("sendActions", entry, "!ACTION! : startProgram " .. entry[GEA.keys["PARAMS"]][i][2] ..", program = ".. entry[GEA.keys["PARAMS"]][i][3] )
 				elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "value") then
 					local id = GEA.getId(entry, entry[GEA.keys["PARAMS"]][i])
