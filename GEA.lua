@@ -12,8 +12,8 @@
 --]]
 
 
--- v 5.15
--- add GEA.regexFullAllow = false
+-- v 5.20
+-- add picture command to send picture by mail
 -- ==================================================
 -- GEA : Gestionnaire d'Evénements Automatique
 -- ==================================================
@@ -28,7 +28,7 @@
 -- it requires some knowledge
 --
 -- Auteur : Steven P. with modification of Hansolo and Shyrka973
--- Version : 5.15
+-- Version : 5.20
 -- Special Thanks to :
 -- jompa68, Fredric, Diuck, Domodial, moicphil, lolomail, byackee,
 -- JossAlf, Did, jompa98, sebcbien and all other guy from Domotique-fibaro.fr
@@ -280,7 +280,7 @@ end
 if (not GEA) then
 	
 	GEA = {}
-	GEA.version = "5.15"
+	GEA.version = "5.20"
 	GEA.language = "FR";
 	GEA.checkEvery = 30
 	GEA.index = 0
@@ -1307,7 +1307,11 @@ if (not GEA) then
 					end
 					fibaro:call(tonumber(entry[GEA.keys["PARAMS"]][i][2]), "sendEmail", GEA.getMessage(entry, sujet), GEA.getMessage(entry, nil))
 					GEA.log("sendActions", entry, "!ACTION! : email to " .. entry[GEA.keys["PARAMS"]][i][2], true)
-					--pushed = true
+				elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "picture" and #entry[GEA.keys["PARAMS"]][i] > 2) then
+					local destinataire = tonumber(entry[GEA.keys["PARAMS"]][i][3])
+					local camera = tonumber(entry[GEA.keys["PARAMS"]][i][2])
+					fibaro:call(camera, "sendPhotoToUser", destinataire)
+					GEA.log("sendActions", entry, "!ACTION! : email picture from camera " .. camera .. " to " .. destinataire, true)
 				elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "scenario" and #entry[GEA.keys["PARAMS"]][i] > 1) then
 					fibaro:startScene(entry[GEA.keys["PARAMS"]][i][2])
 					GEA.log("sendActions", entry, "!ACTION! : Scene " .. entry[GEA.keys["PARAMS"]][i][2], true)
@@ -1624,7 +1628,8 @@ end
 -- {"VirtualDevice", <id,_module>, <id_bouton>} -- {"VirtualDevice", 2, 1} -- Press le bouton (id 1) du module virtuel (id 2) // Press the button 1 from the virtual device Id 2
 -- {"Label", <id_module>, <name>, <message>} -- {"Label", 21, "ui.Label1.value", "activé"} -- Affiche "activé" dans le label ""ui.Label1.value" du module virtuel 21 // Update the value of a label
 -- {"WakeUp", <id,_module>} -- {"WakeUp", 54} -- Essai de réveillé le module 54 // Try to wake up a module
--- {"Email", <id_user>,} -- {"Email", 2} -- Envoi le message par email à l'utilisateur 2 // Send an email to a specific user
+-- {"Email", <id_user>,} -- {"Email", 2} -- Envoi le message par email à l'utilisateur 2 // Send an email to a specific usermodule
+-- {"picture", <id_camera>, <id_user>,} -- {"picture", 2, 3} -- Envoi une capture de la caméra 2 à l'utilisateur 3 // Send a capture of camera 2 to user 3
 -- {"Group", <numero>} -- {"Group", 2} -- Attribut cet événement au groupe 2 // Group attribution
 -- {"Slider", <id_module>, <id_slider>, <valeur>} -- {"Slider", 19, 1, 21.3} -- Met 21.3 dans le slider 1 du module 19 // Update de slider, put 21.3 into the slider 1 from the virtual device id 19
 -- {"Program", <id_module>, <no>} -- {"Program", 19, 5} -- Exécute le programme 5 du module RGB 19 // Start the program 5 from the RBG module id 19
