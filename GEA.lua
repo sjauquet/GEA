@@ -12,9 +12,8 @@
 --]]
 
 
--- v 5.30
--- Add GEA Alarms
--- Correction décalage dans le temps
+-- v 5.31
+-- Correction slider
 -- ==================================================
 -- GEA : Gestionnaire d'Evénements Automatique
 -- ==================================================
@@ -29,7 +28,7 @@
 -- it requires some knowledge
 --
 -- Auteur : Steven P. with modification of Hansolo and Shyrka973
--- Version : 5.30
+-- Version : 5.31
 -- Special Thanks to :
 -- jompa68, Fredric, Diuck, Domodial, moicphil, lolomail, byackee,
 -- JossAlf, Did,  sebcbien, chris6783 and all other guy from Domotique-fibaro.fr
@@ -61,7 +60,7 @@ function yourcode()
 	-- [FR] Affichage des traces dans la console (default : false)
 	-- [EN] Show trace in the debug window
 	GEA.debug = false
-	-- GEA.catchError=false
+	--GEA.catchError=false
 
 	-- [FR] Tableau d'identifiant (facultatif)
 	-- [EN] ID table (optional)
@@ -112,9 +111,8 @@ function yourcode()
   
 	-- Exemple de condition IF // IF Sample condition
   	local estChome = {"Global", "JourChome", "OUI"}
-	local estTravail = {"Global", "JourChome", "NON"}, {"Sensor-", id["TV"], 1}, {"Value", id["DETECTEUR_GARAGE"], 0}
+	local estTravail = {"Global", "JourChome", "NON"}
 	local estSafe = {"Global", "Intrusion", "NON"}
-	local estTravailEtSafe = estTravail, estSafe
 	local estFerme = {"Value", id["PORTE_ENTREE"], "0"}
 	local estVac = {"Global", "Chauffage", "VACANCES"}
 	local enfantsVac = {"Global", "VacScolaire", "0"}
@@ -125,7 +123,7 @@ function yourcode()
 	local lampeEscalierAllumee = {"Value+", id["APLIQUE_ESCALIER"], 0}
 	local bsoAuto = {"Global", "BSO", "Automatique"}
 	
-	--GEA.add({"Alarm", id["GEA_ALARMS"]}, 0, "Push Test #value#")
+	--GEA.add({ {"Alarm", id["GEA_ALARMS"]}, enfantsEcole}, 0, "Poële mode auto à #value#")
 
   	local wake1 = GEA.add({estTravail, enfantsEcole; bsoAuto}, 30, "", {{"Time", "07:15", "07:20"}, {"VirtualDevice", id["BRISE_SOLEIL"], "4"}, {"turnOn", id["SPOTS"]}, {"MaxTime", 1}, {"Days", "Monday, Tuesday, Thursday, Friday"}})
   	local wake2 = GEA.add({estTravail, enfantsEcole, bsoAuto}, 30, "", {{"Time", "08:00", "08:05"}, {"VirtualDevice", id["BRISE_SOLEIL"], "4"}, {"turnOn", id["SPOTS"]}, {"MaxTime", 1}, {"Days", "Wednesday"}})
@@ -138,7 +136,14 @@ function yourcode()
 	GEA.add( true , 60*60, "", {
 		{"VirtualDevice", id["AGENDA"], "12"}, {"Repeat"}
 	})
-	
+
+  
+  	GEA.add(true, 30, "", {{"Slider", id["OPENKAROTZ"], "SliderLeft", 10}})
+  	GEA.add(true, 60, "", {{"Slider", id["OPENKAROTZ"], "SliderLeft", 25}})
+  	GEA.add(true, 90, "", {{"Slider", id["OPENKAROTZ"], "SliderLeft", 50}})
+  	GEA.add(true, 120, "", {{"Slider", id["OPENKAROTZ"], "SliderLeft", 75}})
+
+  
 	-- Timer tout les jours
 	GEA.add( true , 30, "", {
 		{"Time", "01:00", "01:05"}, 
@@ -150,7 +155,7 @@ function yourcode()
   
   	-- Deux fois par jours
 	GEA.add( true , 30, "", {
-		{"Time", "12:00", "12:00"}, {"Time", "19:00", "19:00"}, 
+		{"Time", "01:00", "01:00"}, {"Time", "12:00", "12:00"}, 
 		{"VirtualDevice", id["METEOALERTE"], 5},
 		{"VirtualDevice", id["VACANCES_SCOLAIRES"], 1},
 		{"VirtualDevice", id["BRITA__FILTRE_"], 3},
@@ -229,7 +234,7 @@ function yourcode()
 	GEA.add({id["PLAFONNIER_ENTREE"],{"Value-",id["DETECTEUR_ENTREE"],1}}, 10*60, "", {{"turnOff",65}})
 
 	-- == Brise-Soleil // Shutters managed by a virtual device ==--
-  	GEA.add( {id["DETECTEUR"],estTravailEtSafe}, -1, "Intrusion détectée à #time# - #date#", {{"VirtualDevice", id["BRISE_SOLEIL"], "5"}, {"Global", "Intrusion", "OUI"}, {"Time", "09:00", "16:30"}})
+  	GEA.add( {id["DETECTEUR"], estTravail, estSafe}, -1, "Intrusion détectée à #time# - #date#", {{"VirtualDevice", id["BRISE_SOLEIL"], "5"}, {"Global", "Intrusion", "OUI"}, {"Time", "09:00", "16:30"}})
 	local terrassetimer = GEA.add( {"Global", "Intrusion", "OUI"}, 5*60, "", { {"Global", "Intrusion", "NON"}, {"turnOff", id["TERRASSE"]}, {"Time", "Sunset", "Sunrise"}})
 	GEA.add( id["DETECTEUR"], -1, "", {{"Global", "Intrusion", "OUI"}, {"turnOn", id["TERRASSE"]}, {"Time", "Sunset+30", "Sunrise"}, {"RestartTask", terrassetimer}})
 	GEA.add( {"Global", "Intrusion", "OUI"}, 30*60, "", { {"Global", "Intrusion", "NON"}, {"VirtualDevice", id["BRISE_SOLEIL"], "4"},{"Time", "09:00", "17:00"}})
@@ -301,7 +306,7 @@ end
 if (not GEA) then
 	
 	GEA = {}
-	GEA.version = "5.30"
+	GEA.version = "5.31"
 	GEA.language = "FR";
 	GEA.checkEvery = 30
 	GEA.index = 0
@@ -416,8 +421,11 @@ if (not GEA) then
 	
 	GEA.keys = {ID=1, SECONDES=2, MESSAGE=3, ISREPEAT=4, PARAMS=5, NAME=6, NBRUN=7, DONE=8, VALUE=9, GROUPS=10, OK=11, TOTALRUNS=12, INDEX=13, MAXTIME=14, ROOM=15}
 	
-	GEA.debug = false
-	GEA.catchError = true
+	GEA.debug = false			-- mode de débuggage par défaut
+	GEA.catchError = true		-- capture des errors par défaut
+	GEA.pos = 1				-- compteur du nombre d'éléments principales
+	GEA.useTasksGlobal = true		-- utilise ou non une variable globale pour stocker les Restart/Stop Task
+	GEA.tasks = ""				-- variable pour remplacer la variable global si GEA.useTasksGlobal =false
 	
 	GEA.getGlobalForActivation = {}
 
@@ -455,6 +463,10 @@ if (not GEA) then
 					name[i], room[i] = GEA.getName(id[i])
 				end
 				id = id[1]
+				if (type(id) == "table" and type(id[1]) == "string" and string.lower(id[1]) == "alarm") then
+					repeating = false
+					secondes = 1
+				end
 				table.insert(params, {"If", conditions})
 			elseif (type(id[1]) == "string") then
 				if (string.lower(id[1]) == "global" and #id > 2 and id[2] == "" and id[3] == "") then
@@ -510,8 +522,10 @@ if (not GEA) then
 	-- Ajoute une opération dans la liste
 	-- ---------------------------------------------------------------------------
 	GEA.insert = function(entry) 
-		table.insert(GEA.todo, entry)
+		GEA.todo[GEA.pos] = entry;
+		--table.insert(GEA.todo, entry)
 		--entry[GEA.keys["INDEX"]] = #GEA.todo	
+		GEA.pos = GEA.pos + 1
 		return entry[GEA.keys["INDEX"]]
 	end
 	
@@ -519,23 +533,41 @@ if (not GEA) then
 	-- Ajoute ou supprime un code dans la variable global GEA_Tasks
 	-- ---------------------------------------------------------------------------
 	GEA.addOrRemoveTask = function(code, index, add)
-		local glob = fibaro:getGlobalValue(GEA.globalTasks)
+		local glob = nil
+		if (GEA.useTasksGlobal) then 
+			glob = fibaro:getGlobalValue(GEA.globalTasks)
+		else
+			glob = GEA.tasks
+		end
 		local cIndex = GEA.getCode(code, index)
 		if (glob ~= nil) then
 			glob = string.gsub(glob, cIndex, "")
 		end
 		if (add) then
-			fibaro:setGlobal(GEA.globalTasks, glob .. cIndex)
+			if (GEA.useTasksGlobal) then 
+				fibaro:setGlobal(GEA.globalTasks, glob .. cIndex)
+			else
+				GEA.tasks = glob .. cIndex
+			end
 		else
-			fibaro:setGlobal(GEA.globalTasks, glob)
+			if (GEA.useTasksGlobal) then 
+				fibaro:setGlobal(GEA.globalTasks, glob)
+			else
+				GEA.tasks = glob
+			end
 		end
 	end
 	
 	-- ---------------------------------------------------------------------------
 	-- Vérifie l'existance d'un code dans la variable global GEA_Tasks
 	-- ---------------------------------------------------------------------------	
-	GEA.isTask = function(code, index) 
-		local glob = fibaro:getGlobalValue(GEA.globalTasks)
+	GEA.isTask = function(code, index)
+		local glob = nil
+		if (GEA.useTasksGlobal) then 
+			glob = fibaro:getGlobalValue(GEA.globalTasks)
+		else
+			glob = GEA.tasks
+		end
 		local cIndex = GEA.getCode(code, index)
 		if (glob ~= nil) then
 			return string.match(glob, cIndex)
@@ -611,6 +643,9 @@ if (not GEA) then
 		end
 	end
 	
+	-- ---------------------------------------------------------------------------
+	-- Retourne la pièce contenant le module
+	-- ---------------------------------------------------------------------------
 	GEA.getRoom = function(id)
 		if (type(fibaro:getRoomID(id)) == "number") then
 			if (type(fibaro:getRoomName(fibaro:getRoomID(id))) == "string") then
@@ -620,7 +655,9 @@ if (not GEA) then
 		return ""
 	end
 
-	
+	-- ---------------------------------------------------------------------------
+	-- Vérifie si le jour en cours est dans la liste
+	-- ---------------------------------------------------------------------------
 	GEA.checkDay = function(days)
 		local dayfound = false
 		jours = days
@@ -632,6 +669,7 @@ if (not GEA) then
 		end
 		return dayfound
 	end
+	
 	-- ---------------------------------------------------------------------------
 	-- Vérification des plages de date
 	-- ---------------------------------------------------------------------------
@@ -1403,7 +1441,7 @@ if (not GEA) then
 					fibaro:call(entry[GEA.keys["PARAMS"]][i][2], "pressButton", tostring(entry[GEA.keys["PARAMS"]][i][3]))
 					GEA.log("sendActions", entry, "!ACTION! : VirtualDevice " .. entry[GEA.keys["PARAMS"]][i][2] ..",".. entry[GEA.keys["PARAMS"]][i][3], true)
 				elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "slider" and #entry[GEA.keys["PARAMS"]][i] > 3) then
-					fibaro:call(entry[GEA.keys["PARAMS"]][i][2], "setSlider", "ui."..entry[GEA.keys["PARAMS"]][i][3]..".value", entry[GEA.keys["PARAMS"]][i][4])
+					fibaro:call(entry[GEA.keys["PARAMS"]][i][2], "setSlider", entry[GEA.keys["PARAMS"]][i][3], entry[GEA.keys["PARAMS"]][i][4])
 					GEA.log("sendActions", entry, "!ACTION! : Slider " .. entry[GEA.keys["PARAMS"]][i][2] ..",".. entry[GEA.keys["PARAMS"]][i][3] .."=".. entry[GEA.keys["PARAMS"]][i][4], true)
 				elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "label" and #entry[GEA.keys["PARAMS"]][i] > 3) then
 					fibaro:call(entry[GEA.keys["PARAMS"]][i][2], "setProperty", "ui."..entry[GEA.keys["PARAMS"]][i][3]..".value", GEA.getMessage(entry, entry[GEA.keys["PARAMS"]][i][4]))
@@ -1537,20 +1575,28 @@ if (not GEA) then
 			return false
 		end		
 		
+		local nbElement = #GEA.todo
+		
 		if (GEA.source["type"] == "autostart") then
 		
-			fibaro:setGlobal(GEA.globalTasks, GEA.suspended)
+		
+			if (GEA.useTasksGlobal) then
+				fibaro:setGlobal(GEA.globalTasks, GEA.suspended)
+			else
+				GEA.tasks = GEA.suspended
+			end
 		
 			local delai = GEA.checkEvery
 			local first = 1
 			local firstofall = true
 			local allstart = os.time()
+			
 			while true do
 				GEA.log(GEA.translate[GEA.language]["RUN"], nil, GEA.translate[GEA.language]["SLEEPING"] .. " " .. GEA.checkEvery .. " "..GEA.translate[GEA.language]["SECONDS"], false)
 				fibaro:sleep(delai * 1000)
 				local start = os.time()
 				if (not GEA.pause()) then	
-					for i = 1, #GEA.todo do
+					for i = 1, nbElement do
 						GEA.log(GEA.translate[GEA.language]["RUN"], GEA.todo[i], GEA.translate[GEA.language]["CHECKING"], false)
 						if (GEA.catchError) then
 							if (not pcall(function() GEA.check(GEA.todo[i], i) end)) then
@@ -1577,7 +1623,7 @@ if (not GEA) then
 			end
 		else
 			if (not GEA.pause()) then	
-				for i = 1, #GEA.todo do
+				for i = 1, nbElement do
 					GEA.log(GEA.translate[GEA.language]["RUN"], GEA.todo[i], GEA.translate[GEA.language]["CHECKING"], false)
 					if (GEA.catchError) then
 						if (not pcall(function() GEA.check(GEA.todo[i], i) end)) then
@@ -1689,12 +1735,12 @@ end
 -- {"DST"} -- En mode "saving time" uniquement - en mode heure d'été // Only if we are un summer time
 -- {"NOTDST"} -- En mode "spending time" - en mode heure d'hiver // Only if we are un winter time
 -- {"VirtualDevice", <id,_module>, <id_bouton>} -- {"VirtualDevice", 2, 1} -- Press le bouton (id 1) du module virtuel (id 2) // Press the button 1 from the virtual device Id 2
--- {"Label", <id_module>, <name>, <message>} -- {"Label", 21, "ui.Label1.value", "activé"} -- Affiche "activé" dans le label ""ui.Label1.value" du module virtuel 21 // Update the value of a label
+-- {"Label", <id_module>, <name>, <message>} -- {"Label", 21, "Label1", "activé"} -- Affiche "activé" dans le label ""ui.Label1.value" du module virtuel 21 // Update the value of a label
 -- {"WakeUp", <id,_module>} -- {"WakeUp", 54} -- Essai de réveillé le module 54 // Try to wake up a module
 -- {"Email", <id_user>,} -- {"Email", 2} -- Envoi le message par email à l'utilisateur 2 // Send an email to a specific usermodule
 -- {"picture", <id_camera>, <id_user>,} -- {"picture", 2, 3} -- Envoi une capture de la caméra 2 à l'utilisateur 3 // Send a capture of camera 2 to user 3
 -- {"Group", <numero>} -- {"Group", 2} -- Attribut cet événement au groupe 2 // Group attribution
--- {"Slider", <id_module>, <id_slider>, <valeur>} -- {"Slider", 19, 1, 21.3} -- Met 21.3 dans le slider 1 du module 19 // Update de slider, put 21.3 into the slider 1 from the virtual device id 19
+-- {"Slider", <id_module>, <id_slider>, <valeur>} -- {"Slider", 19, "1", 21} -- Met 21 dans le slider 1 du module 19 // Update de slider, put 21 into the slider 1 from the virtual device id 19
 -- {"Program", <id_module>, <no>} -- {"Program", 19, 5} -- Exécute le programme 5 du module RGB 19 // Start the program 5 from the RBG module id 19
 -- {"RGB", <id_module>, <col1>, <col2>, <col3>, <col4>} -- {"RGB", 19, 100, 100, 0, 100} -- Modifie la couleur RGB du module 19 // Change the color of a RGBW module id 19
 -- {"Days", "Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday, All, Weekday, Weekend"} -- {"Days", "Weekday"} -- uniquement les jours de semaines // add days condition 
