@@ -12,8 +12,8 @@
 --]]
 
 
--- v 5.31
--- Correction slider
+-- v 5.32
+-- Fixed typo for ALARM (thurday -> thursday)
 -- ==================================================
 -- GEA : Gestionnaire d'Evénements Automatique
 -- ==================================================
@@ -28,10 +28,10 @@
 -- it requires some knowledge
 --
 -- Auteur : Steven P. with modification of Hansolo and Shyrka973
--- Version : 5.31
+-- Version : 5.32
 -- Special Thanks to :
 -- jompa68, Fredric, Diuck, Domodial, moicphil, lolomail, byackee,
--- JossAlf, Did,  sebcbien, chris6783 and all other guy from Domotique-fibaro.fr
+-- JossAlf, Did,  sebcbien, chris6783, carfnann and all other guy from Domotique-fibaro.fr
 -- ------------------------------------------------------------
 -- Historique / History
 -- ------------------------------------------------------------
@@ -306,7 +306,7 @@ end
 if (not GEA) then
 	
 	GEA = {}
-	GEA.version = "5.31"
+	GEA.version = "5.32"
 	GEA.language = "FR";
 	GEA.checkEvery = 30
 	GEA.index = 0
