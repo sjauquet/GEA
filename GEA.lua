@@ -1182,7 +1182,7 @@ if (not GEA) then
 					if (string.find(jours, "Lu") or string.find(jours, "Mo")) then days = days .. "Monday" end
 					if (string.find(jours, "Ma") or string.find(jours, "Tu")) then days = days .. "Tuesday" end
 					if (string.find(jours, "Me") or string.find(jours, "We")) then days = days .. "Wednesday" end
-					if (string.find(jours, "Je") or string.find(jours, "Th")) then days = days .. "Thurdays" end
+					if (string.find(jours, "Je") or string.find(jours, "Th")) then days = days .. "thursday" end
 					if (string.find(jours, "Ve") or string.find(jours, "Fr")) then days = days .. "Friday" end
 					if (string.find(jours, "Sa") or string.find(jours, "Sa")) then days = days .. "Saturday" end
 					if (string.find(jours, "Di") or string.find(jours, "Su")) then days = days .. "Sunday" end
