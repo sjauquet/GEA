@@ -12,8 +12,10 @@
 --]]
 
 
--- v 5.32
--- Fixed typo for ALARM (thurday -> thursday)
+-- v 5.33
+-- Fix a bug with inc+ and dec+
+-- Add StopScenario, EnableScenario and DisableScenario
+--
 -- ==================================================
 -- GEA : Gestionnaire d'Evénements Automatique
 -- ==================================================
@@ -28,7 +30,7 @@
 -- it requires some knowledge
 --
 -- Auteur : Steven P. with modification of Hansolo and Shyrka973
--- Version : 5.32
+-- Version : 5.33
 -- Special Thanks to :
 -- jompa68, Fredric, Diuck, Domodial, moicphil, lolomail, byackee,
 -- JossAlf, Did,  sebcbien, chris6783, carfnann and all other guy from Domotique-fibaro.fr
@@ -306,11 +308,11 @@ end
 if (not GEA) then
 	
 	GEA = {}
-	GEA.version = "5.32"
+	GEA.version = "5.33"
 	GEA.language = "FR";
 	GEA.checkEvery = 30
 	GEA.index = 0
-	GEA.isVersionFour = false
+	GEA.isVersionFour = true
 	
 	GEA.globalTasks = "GEA_Tasks"
 	GEA.regexFullAllow = false
@@ -1182,7 +1184,7 @@ if (not GEA) then
 					if (string.find(jours, "Lu") or string.find(jours, "Mo")) then days = days .. "Monday" end
 					if (string.find(jours, "Ma") or string.find(jours, "Tu")) then days = days .. "Tuesday" end
 					if (string.find(jours, "Me") or string.find(jours, "We")) then days = days .. "Wednesday" end
-					if (string.find(jours, "Je") or string.find(jours, "Th")) then days = days .. "thursday" end
+					if (string.find(jours, "Je") or string.find(jours, "Th")) then days = days .. "Thursday" end
 					if (string.find(jours, "Ve") or string.find(jours, "Fr")) then days = days .. "Friday" end
 					if (string.find(jours, "Sa") or string.find(jours, "Sa")) then days = days .. "Saturday" end
 					if (string.find(jours, "Di") or string.find(jours, "Su")) then days = days .. "Sunday" end
@@ -1380,10 +1382,10 @@ if (not GEA) then
 				end
 				if (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "global" and #entry[GEA.keys["PARAMS"]][i] > 2) then
 					local value = string.match(entry[GEA.keys["PARAMS"]][i][3], "(%d+)")
-					if (GEA.match(entry[GEA.keys["PARAMS"]][i][3], "inc+")) then
+					if (GEA.match(entry[GEA.keys["PARAMS"]][i][3], "inc%+")) then
 						local number = tonumber(fibaro:getGlobalValue(entry[GEA.keys["PARAMS"]][i][2]))
 						if (type(value) ~= "nil") then fibaro:setGlobal(entry[GEA.keys["PARAMS"]][i][2], number + value) else fibaro:setGlobal(entry[GEA.keys["PARAMS"]][i][2], number + 1) end
-					elseif (GEA.match(entry[GEA.keys["PARAMS"]][i][3], "dec-")) then
+					elseif (GEA.match(entry[GEA.keys["PARAMS"]][i][3], "dec%-")) then
 						local number = tonumber(fibaro:getGlobalValue(entry[GEA.keys["PARAMS"]][i][2]))
 						if (type(value) ~= "nil") then fibaro:setGlobal(entry[GEA.keys["PARAMS"]][i][2], number - value) else fibaro:setGlobal(entry[GEA.keys["PARAMS"]][i][2], number - 1) end
 					else
@@ -1409,6 +1411,19 @@ if (not GEA) then
 				elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "scenario" and #entry[GEA.keys["PARAMS"]][i] > 1) then
 					fibaro:startScene(entry[GEA.keys["PARAMS"]][i][2])
 					GEA.log("sendActions", entry, "!ACTION! : Scene " .. entry[GEA.keys["PARAMS"]][i][2], true)
+				elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "stopscenario" and #entry[GEA.keys["PARAMS"]][i] > 1) then
+				    if (fibaro:countScenes(entry[GEA.keys["PARAMS"]][i][2])) then
+					    fibaro:killScene(entry[GEA.keys["PARAMS"]][i][2])
+					    GEA.log("sendActions", entry, "!ACTION! : Stop Scene " .. entry[GEA.keys["PARAMS"]][i][2], true)
+					else
+					    GEA.log("sendActions", entry, "!ACTION! : No Stop Scene " .. entry[GEA.keys["PARAMS"]][i][2], true)
+					end
+				elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "enablescenario" and #entry[GEA.keys["PARAMS"]][i] > 1) then
+					fibaro:setSceneEnabled(entry[GEA.keys["PARAMS"]][i][2], true)
+					GEA.log("sendActions", entry, "!ACTION! : Scene enabled " .. entry[GEA.keys["PARAMS"]][i][2], true)
+				elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "disablescenario" and #entry[GEA.keys["PARAMS"]][i] > 1) then
+					fibaro:setSceneEnabled(entry[GEA.keys["PARAMS"]][i][2], false)
+					GEA.log("sendActions", entry, "!ACTION! : Scene disabled " .. entry[GEA.keys["PARAMS"]][i][2], true)
 				elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "function") then
 					local status, err = pcall(entry[GEA.keys["PARAMS"]][i][2])
 					if (status) then
@@ -1718,6 +1733,9 @@ end
 -- {"Repeat"} -- On répete les avertissements tant que le périphérique n'a pas changé d'état. // Repeating the actions as long as the condition is ok
 -- {"Portable", <id>} -- {"Portable", 70} -- Le message associé à ce périphérique sera envoyé à ce portable au lieu de ceux par défaut // Push message will be send to this(these) smartphone instead of default one
 -- {"Scenario", <id>} -- {"Scenario", 2} -- Lance le scénario avec l'identifiant 2 // Start the scene XXX
+-- {"StopScenario", <id>} -- {"StopScenario", 2} -- Arrête le scénario avec l'identifiant 2 // Stop the scene XXX
+-- {"EnableScenario", <id>} -- {"EnableScenario", 2} -- Active le scénario avec l'identifiant 2 // Enable the scene XXX
+-- {"DisableScenario", <id>} -- {"DisableScenario", 2} -- Désactive le scénario avec l'identifiant 2 // Disable the scene XXX
 -- {"Value", <value>} -- {"Value", 20} -- Met la valeur 20 dans le périphérique - dimmer une lampe. // Change the value of the dimmer
 -- {"Value", <id>, <value>} -- {"Value", 30, 20} -- Met la valeur 20 dans le périphérique 30 - dimmer une lampe. // Change the value of the dimmer ID 30
 -- {"Open"} -- Ouvre le volet. // Open the shutter
