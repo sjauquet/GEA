@@ -12,9 +12,8 @@
 --]]
 
 
--- v 5.33
--- Fix a bug with inc+ and dec+
--- Add StopScenario, EnableScenario and DisableScenario
+-- v 5.34
+-- s/nodst/notdst/
 --
 -- ==================================================
 -- GEA : Gestionnaire d'Evénements Automatique
@@ -30,7 +29,7 @@
 -- it requires some knowledge
 --
 -- Auteur : Steven P. with modification of Hansolo and Shyrka973
--- Version : 5.33
+-- Version : 5.34
 -- Special Thanks to :
 -- jompa68, Fredric, Diuck, Domodial, moicphil, lolomail, byackee,
 -- JossAlf, Did,  sebcbien, chris6783, carfnann and all other guy from Domotique-fibaro.fr
@@ -308,7 +307,7 @@ end
 if (not GEA) then
 	
 	GEA = {}
-	GEA.version = "5.33"
+	GEA.version = "5.34"
 	GEA.language = "FR";
 	GEA.checkEvery = 30
 	GEA.index = 0
@@ -693,7 +692,7 @@ if (not GEA) then
 					dayfound = GEA.checkDay(entry[GEA.keys["PARAMS"]][i][2])
 				elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "dst") then
 					dst = os.date("*t", os.time()).isdst
-				elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "nodst") then
+				elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "notdst") then
 					dst = not os.date("*t", os.time()).isdst
 				elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "dates") then
 					datefound = false
