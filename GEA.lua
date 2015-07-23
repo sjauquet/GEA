@@ -7,21 +7,21 @@
 56 value
 25 value
 112 value
+120 value
 39 value
 %% globals
 --]]
 
 
--- v 5.34
--- s/nodst/notdst/
---
+-- v 5.40
+-- Optimisation possible, cf : GEA.optimize = GEA.typeOptimize["IMEDIATE_ONLY"]
 -- ==================================================
--- GEA : Gestionnaire d'EvÈnements Automatique
+-- GEA : Gestionnaire d'Ev√©nements Automatique
 -- ==================================================
--- [FR] ScÈnario permettant de contrÙler si une pÈriphÈrique est 
--- activÈ depuis trop longtemps ou lancer un push d'avertissement
--- Ce scÈnario permet une annotation plus simple que le code LUA
--- il nÈcessite nÈanmoins quelques connaissances
+-- [FR] Sc√©nario permettant de contr√¥ler si une p√©riph√©rique est 
+-- activ√© depuis trop longtemps ou lancer un push d'avertissement
+-- Ce sc√©nario permet une annotation plus simple que le code LUA
+-- il n√©cessite n√©anmoins quelques connaissances
 --
 -- [EN] This scene allow you to check every X second the status
 -- of a module and send actions if the module is activated since too long.
@@ -29,275 +29,281 @@
 -- it requires some knowledge
 --
 -- Auteur : Steven P. with modification of Hansolo and Shyrka973
--- Version : 5.34
+-- Version : 5.40
 -- Special Thanks to :
 -- jompa68, Fredric, Diuck, Domodial, moicphil, lolomail, byackee,
--- JossAlf, Did,  sebcbien, chris6783, carfnann and all other guy from Domotique-fibaro.fr
+-- JossAlf, Did,  sebcbien, chris6783 and all other guy from Domotique-fibaro.fr
 -- ------------------------------------------------------------
 -- Historique / History
 -- ------------------------------------------------------------
 -- L'historique complet est diponible ici :
--- http://www.domotique-fibaro.fr/index.php/topic/1082-gea-gestionnaire-dÈvÈnements-automatique/?p=12428
+-- http://www.domotique-fibaro.fr/index.php/topic/1082-gea-gestionnaire-d√©v√©nements-automatique/?p=12428
 
 function yourcode()
-	-- ==================================================
-	-- [FR] A VOUS DE JOUER
-	-- [EN] YOUR TIME TO PLAY
-	-- ==================================================
-	GEA.isVersionFour = true --- On est en version 4.017 Beta ou suppÈrieur
-	
-	-- [FR] Votre langue : FR (default)
-	-- [EN] Your language : EN
-	GEA.language = "FR";
-	
-	-- [FR] On vÈrifie toutes les X secondes  (default : 30)
-	-- [EN] Check every X seconds
-	GEA.checkEvery = 30 
-	
-	-- [FR] Liste des portables devant recevoir une notification {70, 71}
-	-- [EN] Smarphones you want to be notified {XX, XX} for more than one
-	GEA.portables = {179} 
-	
-	-- [FR] Affichage des traces dans la console (default : false)
-	-- [EN] Show trace in the debug window
-	GEA.debug = false
-	--GEA.catchError=false
-
-	-- [FR] Tableau d'identifiant (facultatif)
-	-- [EN] ID table (optional)
-	
-	local id = {
-		--inconnu
-		LUA_SNIPPETS = 141, 
-		--Garage
-		OREGON = 128, SURPRESSEUR = 118, CAMERA = 123, PORTE_GARAGE = 238, DETECTEUR_PORTE = 112, PORTE_GARAGE_GARAGE = 64, 
-		--Jardin
-		TEMPERATURE = 69, SEISMOMETRE = 71, HUMIDITE = 261, DETECTEUR = 68, NETATMO = 137, PLUVIOMETRE = 262, LUMINOSITE = 70, LAMPE_OUEST = 234, PLUIE = 139, COIN_REPAS = 14, PRESSION_ATMOSPHERIQ = 258, TERRASSE = 160, METEOALERTE = 150, ARROSAGE = 158, NETATMO_EXTERIEUR = 260, 
-		--Local Technique
-		LIVEBOX = 251, IPX800_RELAIS = 106, PORTE_LOCAL = 56, VMC_DOUBLE_FLUX = 114, LAVE_LINGE = 120, PLAFONNIER = 54, PASSERELLE_NETATMO = 135, PASSERELLE_ZIBASE = 126, 
-		--EntrÈe
-		CAMERA_ENTREE = 129, DETECTEUR_ENTREE = 5, LUMINOSITE_ENTREE = 7, SEISMOMETRE_ENTREE = 8, PLAFONNIER_ENTREE = 10, PORTE_ENTREE = 58, TEMPERATURE_ENTREE = 6, 
-		--Cuisine
-		SIRENE = 200, BRITA__FILTRE_ = 131, CUISINE = 237, CAPTEUR_FUMEE = 46, ALARME_FUMEE = 48, FRIGO = 52, TEMPERATURE_CUISINE = 47, LAVE_VAISSELLE = 50, TABLETTE = 176, 
-		--Chambre parentale
-		SECHE_SERVIETTE = 60, 
-		--Salon
-		CHAUFFAGE = 104, HUMIDITE_SALON = 257, CO2 = 256, NETATMO_SALON = 255, SONOMETRE = 259, POELE = 34, OREGON_SALON = 127, TV = 39, HIFI = 42, BLUE_RAY = 41, OPENKAROTZ = 133, ROMBA = 43, LUMIERE_SALON = 107, PRISE_LIBRE = 44, BRISE_SOLEIL = 105, WI = 40, KAROTZ = 134, NETATMO_SALON_SALON = 136, 
-		--Chambres
-		PLAFONNIER_KENDRA = 23, PLAFONNIER_NORA = 18, TEMPERATURE_CHAMBRES = 147, FENETRE_NORA = 143, FENETRE_KENDRA = 145, OREGON_CHAMBRES = 138, FENETRE_NOLAN = 149, PLAFONNIER_NOLAN = 21, 
-		--Couloir
-		PORTE_TERRASSE = 153, APLIQUE_ESCALIER = 25, TEMPERATURE_AU_SOL = 155, SPOTS = 230, LEDS_ESCALIER = 27, 
-		--Divers
-		ANDROID_FILES = 162, IMPERIHOME = 208, TYPE_DE_JOURNEE = 110, EVENEMENTS = 173, NETATMO_DIVERS = 253, CLOCK_SYNC = 252, UPDATE_NOTIFIER_1_0_6 = 206, AGENDA = 178, MY_BATTERIES = 130, VACANCES_SCOLAIRES = 151, 
-		GEA_ALARMS = 279
-	}
-	
+  -- ==================================================
+  -- [FR] A VOUS DE JOUER
+  -- [EN] YOUR TIME TO PLAY
+  -- ==================================================
+  GEA.isVersionFour = true --- On est en version 4.017 Beta ou supp√©rieur
   
-	-- ------------------------------------------------------------
-	-- [FR] Variable Globale optionnel pour autorisÈ GEA de s'exÈcutÈ
-	-- [FR] Usage : GEA.getGlobalForActivation = {"<globalvar>", "<value pour autoriser l'execution>"}
-	-- [EN] Optional Global Variable to allow GEA to run
-	-- [EN] Usage : GEA.getGlobalForActivation = {"<globalvar>", "<value for activation>"}
-	-- ------------------------------------------------------------
-	--GEA.getGlobalForActivation = {"SuspendreGEA", "non"}
-
-	-- ----------------------------------------------------------------
-	-- [FR] A partir d'ici vous trouverez ma propre configuration
-	-- [FR] vous permettant ainsi d'avoir une sÈrie d'exemple
-	-- [EN] From here are ma own configuration
-	-- [EN] just to allow you to see some examples
-	-- ----------------------------------------------------------------
-	
-	--GEA.add(id["LAMPE_ESCALIER"], -1, "", {{"Global", "Test", "#value#"}})
+  -- [FR] Votre langue : FR (default)
+  -- [EN] Your language : EN
+  GEA.language = "FR";
   
-	-- Exemple de condition IF // IF Sample condition
-  	local estChome = {"Global", "JourChome", "OUI"}
-	local estTravail = {"Global", "JourChome", "NON"}
-	local estSafe = {"Global", "Intrusion", "NON"}
-	local estFerme = {"Value", id["PORTE_ENTREE"], "0"}
-	local estVac = {"Global", "Chauffage", "VACANCES"}
-	local enfantsVac = {"Global", "VacScolaire", "0"}
-	local enfantsEcole = {"Global!", "VacScolaire", "0"}
-	local co2Correct = {"Global-", "CO2", "900"}
-	local garageAvertissement = {"Global", "GEA_Garage", "ON"}
-	local lampeEscalierEteinte = {"Value", id["APLIQUE_ESCALIER"], 0}
-	local lampeEscalierAllumee = {"Value+", id["APLIQUE_ESCALIER"], 0}
-	local bsoAuto = {"Global", "BSO", "Automatique"}
-	
-	--GEA.add({ {"Alarm", id["GEA_ALARMS"]}, enfantsEcole}, 0, "PoÎle mode auto ‡ #value#")
-
-  	local wake1 = GEA.add({estTravail, enfantsEcole; bsoAuto}, 30, "", {{"Time", "07:15", "07:20"}, {"VirtualDevice", id["BRISE_SOLEIL"], "4"}, {"turnOn", id["SPOTS"]}, {"MaxTime", 1}, {"Days", "Monday, Tuesday, Thursday, Friday"}})
-  	local wake2 = GEA.add({estTravail, enfantsEcole, bsoAuto}, 30, "", {{"Time", "08:00", "08:05"}, {"VirtualDevice", id["BRISE_SOLEIL"], "4"}, {"turnOn", id["SPOTS"]}, {"MaxTime", 1}, {"Days", "Wednesday"}})
- 	local wake3 = GEA.add({estChome, enfantsEcole, bsoAuto}, 30, "", {{"Time", "09:15", "09:20"}, {"VirtualDevice", id["BRISE_SOLEIL"], "4"}, {"MaxTime", 1}})
+  -- [FR] On v√©rifie toutes les X secondes  (default : 30)
+  -- [EN] Check every X seconds
+  GEA.checkEvery = 30 
   
-	-- Timer toutes les 30 mn
-  	GEA.add( true , 30*60, "")
-	-- Timer toute les heures
-  	-- Chaque heure je rafraichi mon agenda // Every hours I refresh my calendar
-	GEA.add( true , 60*60, "", {
-		{"VirtualDevice", id["AGENDA"], "12"}, {"Repeat"}
-	})
-
+  -- [FR] Liste des portables devant recevoir une notification {70, 71}
+  -- [EN] Smarphones you want to be notified {XX, XX} for more than one
+  GEA.portables = {179} 
   
-  	GEA.add(true, 30, "", {{"Slider", id["OPENKAROTZ"], "SliderLeft", 10}})
-  	GEA.add(true, 60, "", {{"Slider", id["OPENKAROTZ"], "SliderLeft", 25}})
-  	GEA.add(true, 90, "", {{"Slider", id["OPENKAROTZ"], "SliderLeft", 50}})
-  	GEA.add(true, 120, "", {{"Slider", id["OPENKAROTZ"], "SliderLeft", 75}})
+  -- [FR] Affichage des traces dans la console (default : false)
+  -- [EN] Show trace in the debug window
+  GEA.debug = false
+  --GEA.catchError=false
 
+  -- option : GEA.typeOptimize["NONE"], GEA.typeOptimize["IMEDIATE_ONLY"], GEA.typeOptimize["ALL"]
+  -- permet d'optimiser les soucis li√©s au getName et getRoom de fibaro mais n'affiche plus le nom des modules concern√©s.
+  GEA.optimize = GEA.typeOptimize["IMEDIATE_ONLY"]
+
+  -- [FR] Tableau d'identifiant (facultatif)
+  -- [EN] ID table (optional)
   
-	-- Timer tout les jours
-	GEA.add( true , 30, "", {
-		{"Time", "01:00", "01:05"}, 
-		{"RestartTask", wake1}, 
-		{"RestartTask", wake2},
-		{"RestartTask", wake3},
-		{"Global", "GEA_Garage", "ON"}
-	})
+  local id = {
+    --inconnu
+    LUA_SNIPPETS = 141, 
+    --Garage
+    OREGON = 128, SURPRESSEUR = 118, CAMERA = 123, PORTE_GARAGE = 238, DETECTEUR_PORTE = 112, PORTE_GARAGE_GARAGE = 64, 
+    --Jardin
+    TEMPERATURE = 69, SEISMOMETRE = 71, HUMIDITE = 261, DETECTEUR = 68, NETATMO = 137, PLUVIOMETRE = 262, LUMINOSITE = 70, LAMPE_OUEST = 234, PLUIE = 139, COIN_REPAS = 14, PRESSION_ATMOSPHERIQ = 258, TERRASSE = 160, METEOALERTE = 150, ARROSAGE = 158, NETATMO_EXTERIEUR = 260, 
+    --Local Technique
+    LIVEBOX = 251, IPX800_RELAIS = 106, PORTE_LOCAL = 56, VMC_DOUBLE_FLUX = 114, LAVE_LINGE = 120, PLAFONNIER = 54, PASSERELLE_NETATMO = 135, PASSERELLE_ZIBASE = 126, 
+    --Entr√©e
+    CAMERA_ENTREE = 129, DETECTEUR_ENTREE = 5, LUMINOSITE_ENTREE = 7, SEISMOMETRE_ENTREE = 8, PLAFONNIER_ENTREE = 10, PORTE_ENTREE = 58, TEMPERATURE_ENTREE = 6, 
+    --Cuisine
+    SIRENE = 200, BRITA__FILTRE_ = 131, CUISINE = 237, CAPTEUR_FUMEE = 46, ALARME_FUMEE = 48, FRIGO = 52, TEMPERATURE_CUISINE = 47, LAVE_VAISSELLE = 50, TABLETTE = 176, 
+    --Chambre parentale
+    SECHE_SERVIETTE = 60, 
+    --Salon
+    CHAUFFAGE = 104, HUMIDITE_SALON = 360, TEMP=359, CO2 = 256, NETATMO_SALON = 255, SONOMETRE = 259, POELE = 34, OREGON_SALON = 127, TV = 39, HIFI = 42, OPENKAROTZ = 133, ROMBA = 43, LUMIERE_SALON = 107, PRISE_LIBRE = 44, BRISE_SOLEIL = 105, WI = 40, KAROTZ = 134, NETATMO_SALON_SALON = 136, FREEBOX = 307,
+    --Chambres
+    PLAFONNIER_KENDRA = 23, PLAFONNIER_NORA = 18, TEMPERATURE_CHAMBRES = 147, FENETRE_NORA = 143, FENETRE_KENDRA = 145, OREGON_CHAMBRES = 138, FENETRE_NOLAN = 149, PLAFONNIER_NOLAN = 21, 
+    --Couloir
+    PORTE_TERRASSE = 153, APLIQUE_ESCALIER = 25, TEMPERATURE_AU_SOL = 155, SPOTS = 230, LEDS_ESCALIER = 27, 
+    --Divers
+    ANDROID_FILES = 162, IMPERIHOME = 208, TYPE_DE_JOURNEE = 110, EVENEMENTS = 173, NETATMO_DIVERS = 253, CLOCK_SYNC = 252, UPDATE_NOTIFIER_1_0_6 = 206, AGENDA = 178, MY_BATTERIES = 130, VACANCES_SCOLAIRES = 151, 
+    GEA_ALARMS = 279, NOTIFICATION_CENTER = 290
+  }
   
-  	-- Deux fois par jours
-	GEA.add( true , 30, "", {
-		{"Time", "01:00", "01:00"}, {"Time", "12:00", "12:00"}, 
-		{"VirtualDevice", id["METEOALERTE"], 5},
-		{"VirtualDevice", id["VACANCES_SCOLAIRES"], 1},
-		{"VirtualDevice", id["BRITA__FILTRE_"], 3},
-		{"VirtualDevice", id["PLUIE"], 7},
-		{"VirtualDevice", id["MY_BATTERIES"], 11},
-		{"VirtualDevice", id["ANDROID_FILES"], 2}
-	})
-  
-	-- === Lave-Linge == --
-	GEA.add({{"Sensor+", id["LAVE_LINGE"], 1.0},{"Sensor-", id["LAVE_LINGE"], 2.5}, {"Global", "Lave-Linge", "WAITING"}}, 30*60, "Le lave-linge est arrÍtÈ depuis #duration#", {{"Global", "Karotz", "Le lave-linge est arrÍtÈ depuis #durationfull#"},{"VirtualDevice", id["OPENKAROTZ"],"1"},{"Repeat"}})
-	GEA.add({"Sensor-", id["LAVE_LINGE"], 1.5}, 2*60, "", {{"turnOff"}, {"Global", "Lave-Linge", "OFF"}}) 
-	GEA.add({"Sensor+", id["LAVE_LINGE"], 3}, 2*60, "", {{"Global", "Lave-Linge", "RUNNING"}}) 
-	GEA.add({{"Sensor+", id["LAVE_LINGE"], 1.0},{"Sensor-", id["LAVE_LINGE"], 2.5}, {"Global", "Lave-Linge", "RUNNING"}}, 5*60, "", {{"Global", "Lave-Linge", "WAITING"}})
-	GEA.add({{"Sensor+", id["LAVE_LINGE"], 1.0},{"Sensor-", id["LAVE_LINGE"], 2.5}, {"Global", "Lave-Linge", "OFF"}}, 2*60, "", {{"Global", "Lave-Linge", "PREPARATION"}})
-
-	-- === GARAGE == --
-	-- Le scÈnario enverra un push toutes les 10mn tant que la porte sera ouverte // Send a push every 10 minutes when the door is open
-	GEA.add( {id["DETECTEUR_PORTE"], garageAvertissement}, 10*60, "La porte du garage est ouverte depuis plus de #duration#", {{"Global", "Karotz", "La porte du garage est ouverte depuis #durationfull#"},{"VirtualDevice", id["OPENKAROTZ"],"1"},{"Repeat"}})
-	-- Usage immÈdiat. La porte du garage s'ouvre, mon Karotz m'averti et ses oreilles basculent en direction du garage
-	-- Immediat scene. The door opens, my Korotz tel it to me and move its ear direct to the garage
-	GEA.add({ id["DETECTEUR_PORTE"], garageAvertissement}, -1, "", {{"Global", "Karotz", "La porte du garage est ouverte"},{"VirtualDevice", id["OPENKAROTZ"],"1"},{"Slider", id["OPENKAROTZ"], "4", "65"},{"Slider", id["OPENKAROTZ"], "5", "65"}})
-	GEA.add( id["DETECTEUR_PORTE"], -1, "", {{"CurrentIcon", id["PORTE_GARAGE"], "238"},{"VirtualDevice", id["IMPERIHOME"],"7"}})
-	-- Reset des oreilles ‡ la fermeture du garage // Ears are moving back when the door closes
-	GEA.add( id["DETECTEUR_PORTE"], -1, "", {{"Inverse"}, {"VirtualDevice", id["OPENKAROTZ"], "7"},{"VirtualDevice", id["IMPERIHOME"],"6"}, {"CurrentIcon", id["PORTE_GARAGE"], "239"}})
-	-- Avertissement push si la porte du garage s'ouvre ‡ des heures non inappropriÈe // Push when door opens at unexptected moment
-	GEA.add ( id["DETECTEUR_PORTE"], -1, "Ouverture de la porte du garage ‡ #time#", {{"Time", "09:00", "16:00"}, {"Days", "Monday, Tuesday, Thursday, Friday"}, {"Picture", id["CAMERA"], 2}})
-
-	-- Surpresseur
-	GEA.add({"Sensor+", id["SURPRESSEUR"], 400}, 5*60, "Supresseur Èteint, vÈrifiez le niveau du puit", {{"turnOff", id["SURPRESSEUR"]},{"Global", "Karotz", "VÈrifier l eau du puit. Surpresseur Èteint"},{"VirtualDevice", id["OPENKAROTZ"],"1"}}) 
-
-	-- === LOCAL TECHNIQUE == --
-	-- Eteindre automatiquement le local technique aprËs 10 mn // Automatically turn off the light after 10 minutes
-	GEA.add( id["PLAFONNIER"], 10*60, "", {{"turnOff"}}) 
-	-- Allumage automatique ‡ l'ouverture de la porte // Automatic turn on the light when the door opens
-	GEA.add( id["PORTE_LOCAL"], -1, "", {{"turnOn", id["PLAFONNIER"]}})
-	-- Extinction automatique ‡ la fermeture de la porte // Automatic turn off the light when the door closes
-	GEA.add( id["PORTE_LOCAL"], -1, "", {{"Inverse"},{"turnOff", id["PLAFONNIER"]}})
-	  
-	-- Gestion de la VMC --
-	-- Avertissement en cas de surconsommation // Warning if the ventilation is consumming to much
-	GEA.add({"Sensor+", id["VMC_DOUBLE_FLUX"], 100}, 1*60, "Consommation excessive de la VMC #value#") 
-	-- Si la tempÈrature du salon est infÈrieur ‡ 23∞ on arrËte la VMC pour Èviter un refroidissement excessif --
-	-- sauf si la quantitÈ de CO2 est excessive
-	-- If temperature is bellow 23∞ we stop the ventilation except if the CO2 is to much.
-	GEA.add({ {"Global-", "T_Salon", 21}, co2Correct }, 10*60, "", {{"turnOff", id["VMC_DOUBLE_FLUX"]},{"Time","23:00","06:00"}})
-	-- On rallume la VMC si elle est Èteinte. // Turn on the ventilation
-	GEA.add(id["VMC_DOUBLE_FLUX"], 1*60, "", {{"Inverse"},{"turnOn"},{"Time","06:00", "06:05"}})
-	  
-  	-- RÈfrigÈrateur ---
-	GEA.add({"Sensor+", id["FRIGO"], 150}, 1*60, "Consommation excessive du rÈfrigÈrateur #value# (#date# #time#)") 
+  local TypeNotification = {Karotz=6, Pushbullet=2, Email=3, Free=4, Imperihome=8}
   
   
-	-- === CHAMBRES ENFANTS === --
-	-- Dans la nuit, si une lampe est allumÈe plus de 10mn, on diminue son intensitÈ È 20% 
-	-- Si aprËs 20mn la lampe est toujours allumÈe, on l'Èteint
-	-- Si la lumiËre des escaliers est allumÈe, on n'Èteint pas l'Èclairage des chambres
-	-- During night, if children light up their room, we will dim the light to 20% after 10 min and switch off after 20 minutes
-	-- this only if the stairs' light is turn off
-	GEA.add( id["PLAFONNIER_NOLAN"], 10*60, "Chambre Nolan allumÈe 20%", {{"Time", "22:00", "06:00"}, {"Value", 20}})
-	GEA.add({ id["PLAFONNIER_NOLAN"],lampeEscalierEteinte}, 20*60, "Chambre Nolan extinction", {{"Time", "22:00", "06:00"}, {"turnOff"}})
-	GEA.add( id["PLAFONNIER_KENDRA"], 10*60, "Chambre Kendra allumÈe 20%", {{"Time", "22:00", "06:00"}, {"Value", 20}})
-	GEA.add({ id["PLAFONNIER_KENDRA"],lampeEscalierEteinte}, 20*60, "Chambre Kendra extinction", {{"Time", "22:00", "06:00"}, {"turnOff"}})
-	GEA.add( id["PLAFONNIER_NORA"], 10*60, "Chambre Nora allumÈe 20%", {{"Time", "22:00", "06:00"}, {"Value", 20}})
-	GEA.add({ id["PLAFONNIER_NORA"],lampeEscalierEteinte}, 20*60, "Chambre Nora extinction", {{"Time", "22:00", "06:00"}, {"turnOff"}})
+  -- ------------------------------------------------------------
+  -- [FR] Variable Globale optionnel pour autoris√© GEA de s'ex√©cut√©
+  -- [FR] Usage : GEA.getGlobalForActivation = {"<globalvar>", "<value pour autoriser l'execution>"}
+  -- [EN] Optional Global Variable to allow GEA to run
+  -- [EN] Usage : GEA.getGlobalForActivation = {"<globalvar>", "<value for activation>"}
+  -- ------------------------------------------------------------
+  --GEA.getGlobalForActivation = {"SuspendreGEA", "non"}
 
-	GEA.add( id["APLIQUE_ESCALIER"], -1, "", {{"turnOn", id["LEDS_ESCALIER"]}})
-	GEA.add( id["APLIQUE_ESCALIER"], -1, "", {{"Inverse"},{"turnOff", id["LEDS_ESCALIER"]}})
-	GEA.add( {id["TV"],lampeEscalierAllumee}, 30, "", {{"Program", id["LEDS_ESCALIER"], 4}, {"Repeat"}})
+  -- ----------------------------------------------------------------
+  -- [FR] A partir d'ici vous trouverez ma propre configuration
+  -- [FR] vous permettant ainsi d'avoir une s√©rie d'exemple
+  -- [EN] From here are ma own configuration
+  -- [EN] just to allow you to see some examples
+  -- ----------------------------------------------------------------
   
-	-- === ENTREE === --
-	GEA.add({id["DETECTEUR_ENTREE"],{"Global", "Sortie", "0"}}, -1, "", {{"Global", "Sortie", "1"}})
-	GEA.add({"Global", "Sortie", "1"}, 5*60, "", {{"Global", "Sortie", "0"}})
-	GEA.add( { id["PORTE_ENTREE"],{"Global", "Sortie", "0"}}, -1, "", {{"Time", "Sunset", "Sunrise"}, {"turnOn", id["PLAFONNIER_ENTREE"]}, {"VirtualDevice", id["LUMIERE_SALON"], "2"}, {"Global", "Sortie", "2"}})
-	GEA.add({"Global", "Sortie", "2"}, 5*60, "", {{"turnOff", 65}, {"Global", "Sortie", "0"}})
-	GEA.add( id["PORTE_ENTREE"], -1, "Porte entrÈe ouverte ‡ #time#", {{"Days","Monday,Thursday"}, {"Time","16:00","19:30"}, {"Picture", id["CAMERA_ENTREE"], 2}})
-	GEA.add({id["PLAFONNIER_ENTREE"],{"Value-",id["DETECTEUR_ENTREE"],1}}, 10*60, "", {{"turnOff",65}})
-
-	-- == Brise-Soleil // Shutters managed by a virtual device ==--
-  	GEA.add( {id["DETECTEUR"], estTravail, estSafe}, -1, "Intrusion dÈtectÈe ‡ #time# - #date#", {{"VirtualDevice", id["BRISE_SOLEIL"], "5"}, {"Global", "Intrusion", "OUI"}, {"Time", "09:00", "16:30"}})
-	local terrassetimer = GEA.add( {"Global", "Intrusion", "OUI"}, 5*60, "", { {"Global", "Intrusion", "NON"}, {"turnOff", id["TERRASSE"]}, {"Time", "Sunset", "Sunrise"}})
-	GEA.add( id["DETECTEUR"], -1, "", {{"Global", "Intrusion", "OUI"}, {"turnOn", id["TERRASSE"]}, {"Time", "Sunset+30", "Sunrise"}, {"RestartTask", terrassetimer}})
-	GEA.add( {"Global", "Intrusion", "OUI"}, 30*60, "", { {"Global", "Intrusion", "NON"}, {"VirtualDevice", id["BRISE_SOLEIL"], "4"},{"Time", "09:00", "17:00"}})
-
-  	GEA.add( {id["PORTE_ENTREE"],{"Global", "Sortie", "0"}}, -1, "", {{"VirtualDevice", id["BRISE_SOLEIL"], "4"},{"Days","Weekday"}, {"Time","16:00","19:30"}})
+  --GEA.add(id["LAMPE_ESCALIER"], -1, "", {{"Global", "Test", "#value#"}})
   
-  	-- == Tondeuse == --
-  	--GEA.add(id["TONDEUSE"], 30, "", {{"Time", "20:00", "07:00"}, {"turnOff"}, {"MaxTime", 1}})
-	--GEA.add(id["TONDEUSE"], 30, "", {{"Inverse"}, {"Time", "07:05", "19:55"}, {"turnOn"}})
-	
-  	-- == Roomba == --
-  	GEA.add(id["ROMBA"], 30, "", {{"Time", "23:30", "23:32"}, {"turnOff"}})
-	GEA.add(id["ROMBA"], 30, "", {{"Inverse"}, {"Time", "06:05", "06:07"}, {"turnOn"}})
-
-	GEA.add({"Sensor-", id["HIFI"], 2}, 10*60, "", {{"turnOff"}}) 
-	GEA.add({"Sensor-", id["WI"], 2}, 10*60, "", {{"turnOff"}}) 
+  -- Exemple de condition IF // IF Sample condition
+  local estChome = {"Global", "JourChome", "OUI"}
+  local estTravail = {"Global", "JourChome", "NON"}
+  local estSafe = {"Global", "Intrusion", "NON"}
+  local estFerme = {"Value", id["PORTE_ENTREE"], "0"}
+  local estVac = {"Global", "Chauffage", "VACANCES"}
+  local enfantsVac = {"Global", "VacScolaire", "0"}
+  local enfantsEcole = {"Global!", "VacScolaire", "0"}
+  local co2Correct = {"Global-", "CO2", "900"}
+  local garageAvertissement = {"Global", "GEA_Garage", "ON"}
+  local lampeEscalierEteinte = {"Value", id["APLIQUE_ESCALIER"], 0}
+  local lampeEscalierAllumee = {"Value+", id["APLIQUE_ESCALIER"], 0}
+  local bsoAuto = {"Global!", "BSO", "Manuel"}
+  local ifbso = {"If", {bsoAuto, enfantsEcole}}
   
-	-- === KAROTZ === --
-	GEA.add(true , 30, "", {{"VirtualDevice", id["OPENKAROTZ"], "21"},{"Time", "07:00", "07:01"}})
-	GEA.add(id["TV"], 5*60, "", {{"Slider", id["OPENKAROTZ"], "9", "0"},{"Slider", id["OPENKAROTZ"], "10", "0"},{"Slider", id["OPENKAROTZ"], "11", "0"}, {"Repeat"}})
-	GEA.add(id["TV"], 60, "", {{"Inverse"}, {"VirtualDevice", id["OPENKAROTZ"], "14"}})
-	GEA.add(true, 30, "", {{"VirtualDevice", id["OPENKAROTZ"], "20"},{"Time", "23:30", "23:31"}})
-	GEA.add(id["TV"], 30, "", {{"Scenario", 4},{"Time", "07:55", "08:00"},{"Days","Monday,Tuesday,Thursday,Friday"}})
-	GEA.add(id["TV"], 30, "", {{"Scenario", 4},{"Time", "08:40", "08:45"},{"Days","Wednesday"}})
+  --GEA.add({ {"Alarm", id["GEA_ALARMS"]}, enfantsEcole}, 0, "Po√´le mode auto √† #value#")
 
-	GEA.add(id["TV"], -1, "", {{"turnOn", id["WI"]}})
-  	GEA.add(id["TV"], -1, "", {{"Inverse"}, {"turnOff", id["WI"]}})
+  --GEA.add(id["CO2"], 5*60, "", {{"Global", "CO2", "#value#"}})
   
-    -- ===  SËche-serviettes === --
-	-- Allumage ‡ 7h les jours de semaines // Switch on the radiator at 7 am on working day
-	GEA.add({id["SECHE_SERVIETTE"],estTravail}, 30, "", {{"Inverse"},{"Time", "07:00", "07:02"}, {"turnOn"}})
-	-- Allumage ‡ 8h30 les jours de weekend // Switch on the radiator at 8:30am am on sleeping day :)
-	GEA.add({id["SECHE_SERVIETTE"], estChome}, 30, "", {{"Inverse"},{"Time", "08:30", "08:32"}, {"turnOn"}})
-	-- Eteindre aprËs 2 heures / Switch it off after 2 hours
-	GEA.add(id["SECHE_SERVIETTE"], 2*60*60, "", {{"turnOff"}})
+  -- Timer toutes les 5 mn
+  GEA.add( true , 5*60, "", {
+      {"Scenario", 294}, {"Repeat"}
+  })
 
-	-- ===  Arrosage === --
-	-- On rafraichi les prÈvisions de pluie toutes les heures // Checking wheater every hours
---	GEA.add(true, 60*60, "", {{"VirtualDevice", id["VD_PLUIE"], "7"}})
-	-- On calcul le besoin d'arrosage // Calculation to check if irrogator is needed
---	GEA.add(true, 30, "", {{"VirtualDevice", id["VD_PLUIE"], "9"},{"Days", "Tuesday, Friday"}, {"Time", "04:55", "04:56"}})
-	-- Allumage de l'arrosage automatique // Switch on irrigator
---	GEA.add({"Global", "Arrosage", "OUI"}, 30, "", {{"turnOn", id["ARROSAGE"]}, {"Days", "Tuesday"}, {"Time","05:00","08:00"}})
---	GEA.add({"Global", "Arrosage", "PREPARATION"}, 30, "", {{"turnOn", id["ARROSAGE"]}, {"Days", "Tuesday, Friday"}, {"Time","07:30","08:00"}})
-	-- On Èteint // Switch off irrigator
---	local longarrosage = {"If", {{"Global", "Arrosage", "OUI"}}}
---	local courtarrosage = {"If", {{"Global", "Arrosage", "PREPARATION"}}}
---	GEA.add(id["ARROSAGE"], 2*60*60, "", {{"turnOff"}, longarrosage, {"Global", "Arrosage", "NON"}})
---	GEA.add(id["ARROSAGE"], 30*60, "", {{"turnOff"}, courtarrosage, {"Global", "Arrosage", "NON"}})
-
-	-- === DIVERS === --
-	-- Variable global
-	--GEA.add({"Global", "Capsule", "100"}, -1, "Recommander du cafÈ") 
-	-- Avertir s'il fait froid dans le salon // Cold in the living room ?
-	GEA.add({"Global-", "T_Salon", 18}, 30*60, "Il fait froid au salon #value# ‡ #time#")
-	-- VÈrification des piles  une fois par jour // Checking batteries once a day
-	GEA.add({"Batteries", 60}, 24*60*60, "", {{"Repeat"}})
-
-	-- VÈrification des modules parfois "dead" // Checking sometimes dead modules
---	GEA.add({"Dead", id["ARROSAGE"]}, 5*60, "", {{"WakeUp", id["ARROSAGE"]},{"WakeUp", id["TONDEUSE"]}}) -- extÈrieur
+  -- Timer toutes les heures
+  -- Chaque heure je rafraichi mon agenda // Every hours I refresh my calendar
+  GEA.add( true , 60*60, "", {
+    {"VirtualDevice", id["AGENDA"], "12"}, {"Repeat"}
+  })
   
+  -- Timer tout les jours
+  GEA.add( true , 30, "", {
+    {"Time", "01:00", "01:05"}, 
+    {"Global", "GEA_Garage", "ON"}
+  })
+
+  -- Deux fois par jours
+  GEA.add( true , 30, "", {
+    {"Time", "01:00", "01:00"}, {"Time", "12:00", "12:00"}, 
+    {"VirtualDevice", id["METEOALERTE"], 5},
+    {"VirtualDevice", id["VACANCES_SCOLAIRES"], 1},
+    {"VirtualDevice", id["BRITA__FILTRE_"], 3},
+    {"VirtualDevice", id["PLUIE"], 7},
+    {"VirtualDevice", id["MY_BATTERIES"], 11},
+    {"VirtualDevice", id["ANDROID_FILES"], 2}
+  })
+  
+  GEA.add({"Global", "NotificationStatus", "HOUR"}, 60*60, "", {{"Global", "NotificationStatus", "ON"}})
+
+  
+  -- === Lave-Linge == --
+  GEA.add({{"Sensor+", id["LAVE_LINGE"], 1.5}, {"Sensor-", id["LAVE_LINGE"], 2.5}, {"Global", "Lave_Linge", "WAITING"}}, 30*60, "Le lave_linge est arr√™t√© depuis #duration#", {{"Global", "Notification", "Le lave-linge est arr√™t√© depuis #durationfull#"},{"VirtualDevice", id["NOTIFICATION_CENTER"], TypeNotification.Karotz},{"Repeat"}})
+  GEA.add({"Sensor-", id["LAVE_LINGE"], 1.5}, 2*60, "OFF LL #value#", {{"turnOff", id["LAVE_LINGE"]}, {"Global", "Lave_Linge", "OFF"}}) 
+  GEA.add({"Sensor+", id["LAVE_LINGE"], 3}, 2*60, "", {{"Global", "Lave_Linge", "RUNNING"}}) 
+  GEA.add({{"Sensor+", id["LAVE_LINGE"], 1.0},{"Sensor-", id["LAVE_LINGE"], 2.5}, {"Global", "Lave_Linge", "RUNNING"}}, 10*60, "Runng to waiting LL #value#", {{"Global", "Lave_Linge", "WAITING"}})
+  GEA.add( id["LAVE_LINGE"],-1, "OFF to Prepatation LL #value#", {{"Global", "Lave_Linge", "PREPARATION"}})
+
+  -- Pellets en kilo ---
+  GEA.add({{"Global+", "Poele", 20},{"Sensor+", 176, 5.0}}, 30*60, "V√©rifier les pellets #value#", {{"Global", "Notification", "Veuillez v√©rifier les pellets"},{"VirtualDevice", id["NOTIFICATION_CENTER"], TypeNotification.Karotz},{"Repeat"}})  
+  GEA.add({{"Global+", "Poele", 23},{"Sensor-", 176, 5.0}}, 60*60, "V√©rifier les pellets #value#", {{"Global", "Notification", "Veuillez v√©rifier les pellets"},{"VirtualDevice", id["NOTIFICATION_CENTER"], TypeNotification.Karotz},{"Repeat"}})  
+  
+  -- === GARAGE == --
+  -- Le sc√©nario enverra un push toutes les 10mn tant que la porte sera ouverte // Send a push every 10 minutes when the door is open
+  GEA.add( {id["DETECTEUR_PORTE"], garageAvertissement}, 10*60, "La porte du garage est ouverte depuis plus de #duration#", {{"Global", "Notification", "La porte du garage est ouverte depuis #durationfull#"},{"VirtualDevice", id["NOTIFICATION_CENTER"], TypeNotification.Karotz},{"Repeat"}})
+  -- Usage imm√©diat. La porte du garage s'ouvre, mon Karotz m'averti et ses oreilles basculent en direction du garage
+  -- Immediat scene. The door opens, my Korotz tel it to me and move its ear direct to the garage
+  GEA.add({ id["DETECTEUR_PORTE"], garageAvertissement}, -1, "", {{"Global", "Notification", "La porte du garage est ouverte"},{"VirtualDevice", id["NOTIFICATION_CENTER"], TypeNotification.Karotz},{"Slider", id["OPENKAROTZ"], "4", "65"},{"Slider", id["OPENKAROTZ"], "5", "65"}})
+  GEA.add( id["DETECTEUR_PORTE"], -1, "", {{"CurrentIcon", id["PORTE_GARAGE"], "238"},{"VirtualDevice", id["IMPERIHOME"],"7"}})
+  -- Reset des oreilles √† la fermeture du garage // Ears are moving back when the door closes
+  GEA.add( id["DETECTEUR_PORTE"], -1, "", {{"Inverse"}, {"VirtualDevice", id["OPENKAROTZ"], "7"},{"VirtualDevice", id["IMPERIHOME"],"6"}, {"CurrentIcon", id["PORTE_GARAGE"], "239"}})
+  -- Avertissement push si la porte du garage s'ouvre √† des heures non inappropri√©e // Push when door opens at unexptected moment
+  GEA.add ( id["DETECTEUR_PORTE"], -1, "Ouverture de la porte du garage √† #time#", {{"Time", "09:00", "16:00"}, {"Days", "Monday, Tuesday, Thursday, Friday"}, {"Picture", id["CAMERA"], 2}})
+
+  -- Surpresseur
+  GEA.add({"Sensor+", id["SURPRESSEUR"], 400}, 5*60, "Supresseur √©teint, v√©rifiez le niveau du puit", {{"turnOff", id["SURPRESSEUR"]},{"Global", "Notification", "V√©rifier l eau du puit. Surpresseur √©teint"},{"VirtualDevice", id["NOTIFICATION_CENTER"], TypeNotification.Karotz}}) 
+
+  -- === LOCAL TECHNIQUE == --
+  -- Eteindre automatiquement le local technique apr√®s 10 mn // Automatically turn off the light after 10 minutes
+  GEA.add( id["PLAFONNIER"], 10*60, "", {{"turnOff"}}) 
+  -- Allumage automatique √† l'ouverture de la porte // Automatic turn on the light when the door opens
+  GEA.add( id["PORTE_LOCAL"], -1, "", {{"turnOn", id["PLAFONNIER"]}})
+  -- Extinction automatique √† la fermeture de la porte // Automatic turn off the light when the door closes
+  GEA.add( id["PORTE_LOCAL"], -1, "", {{"Inverse"},{"turnOff", id["PLAFONNIER"]}})
     
+  -- Gestion de la VMC --
+  -- Avertissement en cas de surconsommation // Warning if the ventilation is consumming to much
+  GEA.add({"Sensor+", id["VMC_DOUBLE_FLUX"], 100}, 1*60, "Consommation excessive de la VMC #value#") 
+  -- Si la temp√©rature du salon est inf√©rieur √† 23¬∞ on arr√®te la VMC pour √©viter un refroidissement excessif --
+  -- sauf si la quantit√© de CO2 est excessive
+  -- If temperature is bellow 23¬∞ we stop the ventilation except if the CO2 is to much.
+  GEA.add({ {"Value-", id["TEMP"], 21}, co2Correct }, 10*60, "", {{"turnOff", id["VMC_DOUBLE_FLUX"]},{"Time","23:00","06:00"}})
+  -- On rallume la VMC si elle est √©teinte. // Turn on the ventilation
+  GEA.add(id["VMC_DOUBLE_FLUX"], 1*60, "", {{"Inverse"},{"turnOn"},{"Time","06:00", "06:05"}})
+    
+    -- R√©frig√©rateur ---
+  GEA.add({"Sensor+", id["FRIGO"], 150}, 1*60, "Consommation excessive du r√©frig√©rateur #value# (#date# #time#)") 
+  
+  
+  -- === CHAMBRES ENFANTS === --
+  -- Dans la nuit, si une lampe est allum√©e plus de 10mn, on diminue son intensit√© √© 20% 
+  -- Si apr√®s 20mn la lampe est toujours allum√©e, on l'√©teint
+  -- Si la lumi√®re des escaliers est allum√©e, on n'√©teint pas l'√©clairage des chambres
+  -- During night, if children light up their room, we will dim the light to 20% after 10 min and switch off after 20 minutes
+  -- this only if the stairs' light is turn off
+  GEA.add( id["PLAFONNIER_NOLAN"], 10*60, "Chambre Nolan allum√©e 20%", {{"Time", "22:00", "06:00"}, {"Value", 20}})
+  GEA.add({ id["PLAFONNIER_NOLAN"],lampeEscalierEteinte}, 20*60, "Chambre Nolan extinction", {{"Time", "22:00", "06:00"}, {"turnOff"}})
+  GEA.add( id["PLAFONNIER_KENDRA"], 10*60, "Chambre Kendra allum√©e 20%", {{"Time", "22:00", "06:00"}, {"Value", 20}})
+  GEA.add({ id["PLAFONNIER_KENDRA"],lampeEscalierEteinte}, 20*60, "Chambre Kendra extinction", {{"Time", "22:00", "06:00"}, {"turnOff"}})
+  GEA.add( id["PLAFONNIER_NORA"], 10*60, "Chambre Nora allum√©e 20%", {{"Time", "22:00", "06:00"}, {"Value", 20}})
+  GEA.add({ id["PLAFONNIER_NORA"],lampeEscalierEteinte}, 20*60, "Chambre Nora extinction", {{"Time", "22:00", "06:00"}, {"turnOff"}})
+
+  GEA.add( id["APLIQUE_ESCALIER"], -1, "", {{"turnOn", id["LEDS_ESCALIER"]}})
+  GEA.add( id["APLIQUE_ESCALIER"], -1, "", {{"Inverse"},{"turnOff", id["LEDS_ESCALIER"]}})
+  GEA.add( {id["TV"],lampeEscalierAllumee}, 30, "", {{"Program", id["LEDS_ESCALIER"], 4}, {"Repeat"}})
+  
+  -- === ENTREE === --
+  GEA.add({id["DETECTEUR_ENTREE"],{"Global", "Sortie", "0"}}, -1, "", {{"Global", "Sortie", "1"}})
+  GEA.add({"Global", "Sortie", "1"}, 5*60, "", {{"Global", "Sortie", "0"}})
+  GEA.add( { id["PORTE_ENTREE"],{"Global", "Sortie", "0"}}, -1, "", {{"Time", "Sunset", "Sunrise"}, {"turnOn", id["PLAFONNIER_ENTREE"]}, {"VirtualDevice", id["LUMIERE_SALON"], "2"}, {"Global", "Sortie", "2"}})
+  GEA.add({"Global", "Sortie", "2"}, 5*60, "", {{"turnOff", 65}, {"Global", "Sortie", "0"}})
+  GEA.add( id["PORTE_ENTREE"], -1, "Porte entr√©e ouverte √† #time#", {{"Days","Monday,Thursday"}, {"Time","16:00","19:30"}, {"Picture", id["CAMERA_ENTREE"], 2}})
+  GEA.add({id["PLAFONNIER_ENTREE"],{"Value-",id["DETECTEUR_ENTREE"],1}}, 10*60, "", {{"turnOff",65}})
+
+  -- == Brise-Soleil // Shutters managed by a virtual device ==--
+  GEA.add( {id["DETECTEUR"], estTravail, estSafe}, -1, "Intrusion d√©tect√©e √† #time# - #date#", {{"VirtualDevice", id["BRISE_SOLEIL"], "5"}, {"Global", "Intrusion", "OUI"}, {"Time", "09:00", "16:30"}})
+  local terrassetimer = GEA.add( {"Global", "Intrusion", "OUI"}, 5*60, "", { {"Global", "Intrusion", "NON"}, {"turnOff", id["TERRASSE"]}, {"Time", "Sunset", "Sunrise"}})
+  GEA.add( id["DETECTEUR"], -1, "", {{"Global", "Intrusion", "OUI"}, {"turnOn", id["TERRASSE"]}, {"Time", "Sunset+30", "Sunrise"}, {"RestartTask", terrassetimer}})
+  GEA.add( {{"Global", "Intrusion", "OUI"}, {"Value-", id["TEMPERATURE"], 23}}, 30*60, "", { {"Global", "Intrusion", "NON"}, {"VirtualDevice", id["BRISE_SOLEIL"], "4"},{"Time", "09:00", "17:00"}})
+
+  GEA.add( {id["PORTE_ENTREE"],{"Global", "Sortie", "0"}}, -1, "", {{"VirtualDevice", id["BRISE_SOLEIL"], "4"},{"Days","Weekday"}, {"Time","16:00","19:30"}})
+  
+    -- == Tondeuse == --
+    --GEA.add(id["TONDEUSE"], 30, "", {{"Time", "20:00", "07:00"}, {"turnOff"}, {"MaxTime", 1}})
+  --GEA.add(id["TONDEUSE"], 30, "", {{"Inverse"}, {"Time", "07:05", "19:55"}, {"turnOn"}})
+  
+    -- == Roomba == --
+  GEA.add(id["ROMBA"], 30, "", {{"Time", "23:30", "23:32"}, {"turnOff"}})
+  GEA.add(id["ROMBA"], 30, "", {{"Inverse"}, {"Time", "06:05", "06:07"}, {"turnOn"}})
+
+  GEA.add({"Sensor-", id["HIFI"], 2}, 10*60, "", {{"turnOff"}}) 
+  GEA.add({"Sensor-", id["WI"], 2}, 10*60, "", {{"turnOff"}}) 
+  
+  -- === KAROTZ === --
+  GEA.add(true , 30, "", {{"VirtualDevice", id["OPENKAROTZ"], "21"},{"Time", "07:00", "07:01"}})
+  GEA.add(id["TV"], 5*60, "", {{"Slider", id["OPENKAROTZ"], "9", "0"},{"Slider", id["OPENKAROTZ"], "10", "0"},{"Slider", id["OPENKAROTZ"], "11", "0"}, {"Repeat"}})
+  GEA.add(id["TV"], 60, "", {{"Inverse"}, {"VirtualDevice", id["OPENKAROTZ"], "14"}})
+  GEA.add(true, 30, "", {{"VirtualDevice", id["OPENKAROTZ"], "20"},{"Time", "23:30", "23:31"}})
+  GEA.add(id["TV"], 30, "", {{"Scenario", 4},{"Time", "07:55", "08:00"},{"Days","Monday,Tuesday,Thursday,Friday"}})
+  GEA.add(id["TV"], 30, "", {{"Scenario", 4},{"Time", "08:40", "08:45"},{"Days","Wednesday"}})
+
+  GEA.add(id["TV"], -1, "", {{"VirtualDevice", id["FREEBOX"], "1"}})
+  GEA.add(id["TV"], -1, "", {{"turnOn", id["WI"]}})
+  GEA.add(id["TV"], -1, "", {{"Inverse"}, {"turnOff", id["WI"]}})
+  
+    -- ===  S√®che-serviettes === --
+  -- Allumage √† 7h les jours de semaines // Switch on the radiator at 7 am on working day
+  GEA.add({id["SECHE_SERVIETTE"],estTravail,{"Value-", id["TEMP"], 23}}, 30, "", {{"Inverse"},{"Time", "07:00", "07:02"}, {"turnOn"}})
+  -- Allumage √† 8h30 les jours de weekend // Switch on the radiator at 8:30am am on sleeping day :)
+  GEA.add({id["SECHE_SERVIETTE"], estChome,{"Value-", id["TEMP"], 23}}, 30, "", {{"Inverse"},{"Time", "08:30", "08:32"}, {"turnOn"}})
+  -- Eteindre apr√®s 2 heures / Switch it off after 2 hours
+  GEA.add(id["SECHE_SERVIETTE"], 2*60*60, "", {{"turnOff"}})
+
+  -- ===  Arrosage === --
+  -- On rafraichi les pr√©visions de pluie toutes les heures // Checking wheater every hours
+--  GEA.add(true, 60*60, "", {{"VirtualDevice", id["VD_PLUIE"], "7"}})
+  -- On calcul le besoin d'arrosage // Calculation to check if irrogator is needed
+--  GEA.add(true, 30, "", {{"VirtualDevice", id["VD_PLUIE"], "9"},{"Days", "Tuesday, Friday"}, {"Time", "04:55", "04:56"}})
+  -- Allumage de l'arrosage automatique // Switch on irrigator
+--  GEA.add({"Global", "Arrosage", "OUI"}, 30, "", {{"turnOn", id["ARROSAGE"]}, {"Days", "Tuesday"}, {"Time","05:00","08:00"}})
+--  GEA.add({"Global", "Arrosage", "PREPARATION"}, 30, "", {{"turnOn", id["ARROSAGE"]}, {"Days", "Tuesday, Friday"}, {"Time","07:30","08:00"}})
+  -- On √©teint // Switch off irrigator
+--  local longarrosage = {"If", {{"Global", "Arrosage", "OUI"}}}
+--  local courtarrosage = {"If", {{"Global", "Arrosage", "PREPARATION"}}}
+--  GEA.add(id["ARROSAGE"], 2*60*60, "", {{"turnOff"}, longarrosage, {"Global", "Arrosage", "NON"}})
+--  GEA.add(id["ARROSAGE"], 30*60, "", {{"turnOff"}, courtarrosage, {"Global", "Arrosage", "NON"}})
+
+  -- === DIVERS === --
+  -- Variable global
+  --GEA.add({"Global", "Capsule", "100"}, -1, "Recommander du caf√©") 
+  -- Avertir s'il fait froid dans le salon // Cold in the living room ?
+  GEA.add({"Value-", id["TEMP"], 18}, 30*60, "Il fait froid au salon #value# √† #time#")
+  -- V√©rification des piles  une fois par jour // Checking batteries once a day
+--  GEA.add({"Batteries", 60}, 24*60*60, "", {{"Repeat"}})
+
+-- V√©rification des modules parfois "dead" // Checking sometimes dead modules
+  GEA.add({"Dead", id["POELE"]}, 5*60, "", {{"WakeUp", id["POELE"]}})
+  GEA.add({"Dead", id["LEDS_ESCALIER"]}, 5*60, "", {{"WakeUp", id["LEDS_ESCALIER"]}}) -- ext√©rieur
+   
     -- ==================================================
     -- [FR] NE PLUS RIEN TOUCHER
     -- [EN] DON'T TOUCH UNDER THIS POINT
@@ -307,7 +313,7 @@ end
 if (not GEA) then
 	
 	GEA = {}
-	GEA.version = "5.34"
+	GEA.version = "5.40"
 	GEA.language = "FR";
 	GEA.checkEvery = 30
 	GEA.index = 0
@@ -325,49 +331,49 @@ if (not GEA) then
 	GEA.translate["FR"] = {
 		ADDED_FOR 	= "ajout de la tache pour",
 		SECONDS 		= "secondes",
-		ADDED_DIRECT 	= "ajout de la tache pour lancement instantanÈ",
+		ADDED_DIRECT 	= "ajout de la tache pour lancement instantan√©",
 		WILL_SUSPEND 	=  "entrainera la supsension de",
-		SUSPEND_ERROR 	= "ERROR GEA.Suspend demande un tableau en paramËtre 2",
-		CHECKING_DATE 	= "vÈrification des dates",
-		CHECKING_TIME 	= "vÈrification plage horaire",
+		SUSPEND_ERROR 	= "ERROR GEA.Suspend demande un tableau en param√®tre 2",
+		CHECKING_DATE 	= "v√©rification des dates",
+		CHECKING_TIME 	= "v√©rification plage horaire",
 		TODAY 		= "Aujourd'hui ",
 		NOT_INCLUDED 	= "n'est pas inclus dans",
 		TODAY_NOT_DST = "Aujourd'hui n'est pas en mode DST",
-		DATE_NOT_ALLOWED = "n'est pas dans la plage de dates spÈcifiÈes",
+		DATE_NOT_ALLOWED = "n'est pas dans la plage de dates sp√©cifi√©es",
 		CURRENT_TIME 	= "L'heure actuelle",
-		TIME_NOT_ALLOWED = "n'est pas autorisÈe",
-		TIME_OUT 		= "vÈrification ignorÈ car en dehors de la plage horaire : ",
-		TIME_IN 		= "vÈrification contrÙlÈ car dans la plage horaire spÈcifiÈe ",
-		CHECK_STARTED = "dÈmarrage vÈrification",
-		DONE 		= "tache effectuÈe et suspendue",
-		CHECK_MAIN	 = "vÈrification de l'activation",
-		CHECK_IF		= "vÈrification de l'exception",
-		CHECK_IF_FAILED = "dÈsactivÈ par exception",
+		TIME_NOT_ALLOWED = "n'est pas autoris√©e",
+		TIME_OUT 		= "v√©rification ignor√© car en dehors de la plage horaire : ",
+		TIME_IN 		= "v√©rification contr√¥l√© car dans la plage horaire sp√©cifi√©e ",
+		CHECK_STARTED = "d√©marrage v√©rification",
+		DONE 		= "tache effectu√©e et suspendue",
+		CHECK_MAIN	 = "v√©rification de l'activation",
+		CHECK_IF		= "v√©rification de l'exception",
+		CHECK_IF_FAILED = "d√©sactiv√© par exception",
 		ERROR 		= "!!! ERREUR !!!",
-		ERROR_IF 		= "IF malformÈ",
-		ACTIVATED 	= "activÈ",
-		DESACTIVATED 	= "dÈsactivÈ",
+		ERROR_IF 		= "IF malform√©",
+		ACTIVATED 	= "activ√©",
+		DESACTIVATED 	= "d√©sactiv√©",
 		HOUR			= "heure",
 		HOURS		= "heures",
 		MINUTE		= "minute",
 		MINUTES		= "minutes",
 		SECOND		= "seconde",
 		ACTIONS		= "traitement des actions",
-		GEA_SUSPENDED = "ScÈnario suspendu par la variable globale ",
+		GEA_SUSPENDED = "Sc√©nario suspendu par la variable globale ",
 		VALUE 		= "valeur",
 		REQUERIED		= "attendu",
 		NOTHING_TODO 	= "aucun traitement a effectuer",
-		CHECKING		= "vÈrification",
+		CHECKING		= "v√©rification",
 		SLEEPING		= "Endormi pendant",
-		RUN_FOR		= "DurÈe des traitements : ",
-		RUN_NEW		= "nouveau dÈlai : ",
+		RUN_FOR		= "Dur√©e des traitements : ",
+		RUN_NEW		= "nouveau d√©lai : ",
 		RUN_SINCE		= "tourne depuis",
 		RUN 			= "En cours",
-		RUNING		= "en exÈcution",
+		RUNING		= "en ex√©cution",
 		BATTERIE		= "Pile faible",
 		ALWAYS		= "Toujours",
-		RESTART		= "RedÈmarrage",
-		SUPSENDED	= "ArrÍtÈe",
+		RESTART		= "Red√©marrage",
+		SUPSENDED	= "Arr√™t√©e",
 		NOTHING_TODOID  = "aucun traitement a effectuer pour l'ID:"
 	}
 	GEA.translate["EN"] = {
@@ -394,7 +400,7 @@ if (not GEA) then
 		ERROR 		= "!!! ERROR !!!",
 		ERROR_IF 		= "IF malformed",
 		ACTIVATED 	= "activate",
-		DESACTIVATED 	= "dÈsactivate",
+		DESACTIVATED 	= "d√©sactivate",
 		HOUR			= "hour",
 		HOURS		= "hours",
 		MINUTE		= "minute",
@@ -422,18 +428,20 @@ if (not GEA) then
 	
 	GEA.keys = {ID=1, SECONDES=2, MESSAGE=3, ISREPEAT=4, PARAMS=5, NAME=6, NBRUN=7, DONE=8, VALUE=9, GROUPS=10, OK=11, TOTALRUNS=12, INDEX=13, MAXTIME=14, ROOM=15}
 	
-	GEA.debug = false			-- mode de dÈbuggage par dÈfaut
-	GEA.catchError = true		-- capture des errors par dÈfaut
-	GEA.pos = 1				-- compteur du nombre d'ÈlÈments principales
+	GEA.debug = false				-- mode de d√©buggage par d√©faut
+	GEA.catchError = true		-- capture des errors par d√©faut
+	GEA.pos = 1						-- compteur du nombre d'√©l√©ments principales
 	GEA.useTasksGlobal = true		-- utilise ou non une variable globale pour stocker les Restart/Stop Task
-	GEA.tasks = ""				-- variable pour remplacer la variable global si GEA.useTasksGlobal =false
+	GEA.tasks = ""					-- variable pour remplacer la variable global si GEA.useTasksGlobal = false
+	GEA.typeOptimize = {NONE=0, IMEDIATE_ONLY=1, ALL=2}
+	GEA.optimize = GEA.typeOptimize["NONE"]
 	
 	GEA.getGlobalForActivation = {}
 
 	GEA.source = fibaro:getSourceTrigger()
 	
 	-- ---------------------------------------------------------------------------
-	-- Ajout un pÈriphÈrique dans la liste des ÈlÈments ‡ traiter
+	-- Ajout un p√©riph√©rique dans la liste des √©l√©ments √† traiter
 	-- ---------------------------------------------------------------------------
 	GEA.add = function(id, secondes, message, arg)
 		local repeating = false
@@ -520,7 +528,7 @@ if (not GEA) then
 	end
 	
 	-- ---------------------------------------------------------------------------
-	-- Ajoute une opÈration dans la liste
+	-- Ajoute une op√©ration dans la liste
 	-- ---------------------------------------------------------------------------
 	GEA.insert = function(entry) 
 		GEA.todo[GEA.pos] = entry;
@@ -560,7 +568,7 @@ if (not GEA) then
 	end
 	
 	-- ---------------------------------------------------------------------------
-	-- VÈrifie l'existance d'un code dans la variable global GEA_Tasks
+	-- V√©rifie l'existance d'un code dans la variable global GEA_Tasks
 	-- ---------------------------------------------------------------------------	
 	GEA.isTask = function(code, index)
 		local glob = nil
@@ -581,9 +589,12 @@ if (not GEA) then
 	end
 		
 	-- ---------------------------------------------------------------------------
-	-- Obtention d'un nom pour le systËme
+	-- Obtention d'un nom pour le syst√®me
 	-- ---------------------------------------------------------------------------
 	GEA.getName = function(id)
+		if (GEA.optimize == GEA.typeOptimize["ALL"] or (GEA.source["type"] ~= "autostart" and GEA.optimize == GEA.typeOptimize["IMEDIATE_ONLY"])) then
+			return "n/a", "n/a"
+      	end
 		local room = ""
 		if (type(id) == "nil" or type(id) == "boolean") then
 			return GEA.translate[GEA.language]["ALWAYS"], ""
@@ -640,12 +651,12 @@ if (not GEA) then
 		elseif (type(id) == "table" and string.lower(id[1]) == "group") then
 			return "Group [" .. id[2].. "]", ""
 		else
-			-- autre ‡ venir
+			-- autre √† venir
 		end
 	end
 	
 	-- ---------------------------------------------------------------------------
-	-- Retourne la piËce contenant le module
+	-- Retourne la pi√®ce contenant le module
 	-- ---------------------------------------------------------------------------
 	GEA.getRoom = function(id)
 		if (type(fibaro:getRoomID(id)) == "number") then
@@ -657,7 +668,7 @@ if (not GEA) then
 	end
 
 	-- ---------------------------------------------------------------------------
-	-- VÈrifie si le jour en cours est dans la liste
+	-- V√©rifie si le jour en cours est dans la liste
 	-- ---------------------------------------------------------------------------
 	GEA.checkDay = function(days)
 		local dayfound = false
@@ -672,7 +683,7 @@ if (not GEA) then
 	end
 	
 	-- ---------------------------------------------------------------------------
-	-- VÈrification des plages de date
+	-- V√©rification des plages de date
 	-- ---------------------------------------------------------------------------
 	GEA.checkTimes = function(entry)
 	
@@ -757,7 +768,7 @@ if (not GEA) then
 	end
 	
 	-- ---------------------------------------------------------------------------
-	-- ContrÙle des heures
+	-- Contr√¥le des heures
 	-- ---------------------------------------------------------------------------
 	GEA.flatTime = function(time)
 	
@@ -811,7 +822,7 @@ if (not GEA) then
 	end
 	
 	-- ---------------------------------------------------------------------------
-	-- VÈrification d'une plage de date
+	-- V√©rification d'une plage de date
 	-- ---------------------------------------------------------------------------
 	GEA.checkTime = function(entry, times)
 
@@ -839,7 +850,7 @@ if (not GEA) then
 	end
 	
 	-- ---------------------------------------------------------------------------
-	-- Split une chaÓne selon un dÈlimiteur
+	-- Split une cha√Æne selon un d√©limiteur
 	-- ---------------------------------------------------------------------------
 	GEA.split = function(text, sep)
 		local sep, fields = sep or ":", {}
@@ -849,7 +860,7 @@ if (not GEA) then
 	end
 	
 	-- ---------------------------------------------------------------------------
-	-- Supprime les espaces avant et aprËs
+	-- Supprime les espaces avant et apr√®s
 	-- ---------------------------------------------------------------------------
 	GEA.trim = function(s)
 		return (s:gsub("^%s*(.-)%s*$", "%1"))
@@ -877,7 +888,7 @@ if (not GEA) then
 	end
 	
 	-- ---------------------------------------------------------------------------
-	-- On vÈrifie pour un pÈrphÈrique
+	-- On v√©rifie pour un p√©rph√©rique
 	-- ---------------------------------------------------------------------------
 	GEA.check = function(entry, index)
 	
@@ -902,7 +913,7 @@ if (not GEA) then
 		
 		if (GEA.checkTimes(entry)) then
 			if (GEA.isActivate(entry, 1, entry) ) then
-				-- le pÈriphÈrique est actif on inclÈmente le compteur
+				-- le p√©riph√©rique est actif on incl√©mente le compteur
 				
 				if (entry[GEA.keys["SECONDES"]] < 0) then
 					local maxglob =  GEA.isTask("M", entry[GEA.keys["INDEX"]].."{(%d+)}") 
@@ -920,7 +931,7 @@ if (not GEA) then
 					entry[GEA.keys["TOTALRUNS"]] = 0
 				end
 				if (not entry[GEA.keys["DONE"]]) then
-					GEA.log("Check", entry, "activÈ depuis " .. (entry[GEA.keys["TOTALRUNS"]] * GEA.checkEvery)  .. "/"..entry[GEA.keys["SECONDES"]], false)
+					GEA.log("Check", entry, "activ√© depuis " .. (entry[GEA.keys["TOTALRUNS"]] * GEA.checkEvery)  .. "/"..entry[GEA.keys["SECONDES"]], false)
 				end
 				
 				if (entry[GEA.keys["SECONDES"]] < 0 and (entry[GEA.keys["MAXTIME"]] == -1 or  (entry[GEA.keys["TOTALRUNS"]]-1) < entry[GEA.keys["MAXTIME"]])) then
@@ -936,7 +947,7 @@ if (not GEA) then
 					end
 				end
 			else
-				-- le pÈriphÈrique est inactif on remet le compteur ‡ 0
+				-- le p√©riph√©rique est inactif on remet le compteur √† 0
 				entry[GEA.keys["NBRUN"]] = 0
 				entry[GEA.keys["TOTALRUNS"]] = 0
 				entry[GEA.keys["DONE"]] = false
@@ -965,7 +976,7 @@ if (not GEA) then
 	end
 	
 	-- ---------------------------------------------------------------------------
-	-- VÈrification spÈcifique pour savoir si un pÈriphÈrique est activÈ 
+	-- V√©rification sp√©cifique pour savoir si un p√©riph√©rique est activ√© 
 	-- ou non
 	-- ---------------------------------------------------------------------------
 	GEA.isActivate = function(entry, nb, master)
@@ -1246,8 +1257,8 @@ if (not GEA) then
 	end
 	
 	-- ---------------------------------------------------------------------------
-	-- Permet de dÈfinir / spÈcifier un message prÈcis qui sera envoyÈ
-	-- par la mÈthode sendWarning
+	-- Permet de d√©finir / sp√©cifier un message pr√©cis qui sera envoy√©
+	-- par la m√©thode sendWarning
 	-- ---------------------------------------------------------------------------	
 	GEA.getMessage = function(entry, message)
 		local msg = ""
@@ -1308,7 +1319,7 @@ if (not GEA) then
 	end
 	
 	-- ---------------------------------------------------------------------------
-	-- Converti une durÈe en chaÓne de caratËres
+	-- Converti une dur√©e en cha√Æne de carat√®res
 	-- ---------------------------------------------------------------------------
 	GEA.getDureeInString = function(duree) 
 	
@@ -1528,7 +1539,7 @@ if (not GEA) then
 	end
 	
 	-- ---------------------------------------------------------------------------
-	-- Chercher l'id du pÈriphÈrique
+	-- Chercher l'id du p√©riph√©rique
 	-- ---------------------------------------------------------------------------	
 	GEA.getId = function(entry, param)
 		local id = 0
@@ -1550,7 +1561,7 @@ if (not GEA) then
 	
 	
 	-- ---------------------------------------------------------------------------
-	-- Le systËme est-il en pause
+	-- Le syst√®me est-il en pause
 	-- ---------------------------------------------------------------------------	
 	GEA.pause = function()
 		local continue = true
@@ -1566,7 +1577,7 @@ if (not GEA) then
 	end
 	
 	-- ---------------------------------------------------------------------------
-	-- ContrÙle tous les pÈriphÈrique dÈclarÈs toutes les X secondes
+	-- Contr√¥le tous les p√©riph√©rique d√©clar√©s toutes les X secondes
 	-- ---------------------------------------------------------------------------	
 	GEA.run = function() 
 	
@@ -1652,7 +1663,7 @@ if (not GEA) then
 	end
 	
 	-- ---------------------------------------------------------------------------
-	-- ContrÙle tous les pÈriphÈrique dÈclarÈs toutes les X secondes
+	-- Contr√¥le tous les p√©riph√©rique d√©clar√©s toutes les X secondes
 	-- ---------------------------------------------------------------------------		
 	GEA.log = function(method, entry, message, force, color) 
 		if (force or GEA.debug) then
@@ -1688,7 +1699,7 @@ if (not GEA) then
 				elseif (type(id) == "table" and string.lower(entry[GEA.keys["ID"]][1]) == "alarm") then
 					msg = msg .. "Alarm " .. fibaro:getValue(tonumber(entry[GEA.keys["ID"]][2]), "ui.lblAlarme.value")
 				else 
-					-- autre ‡ venir
+					-- autre √† venir
 				end
 			end
 			if (method and method ~= "") then
@@ -1725,18 +1736,18 @@ if (not GEA) then
 end
 
 
--- Les paramËtres disponibles sont 
--- {"turnOff"} -- Eteint le pÈriphÈrique concennÈ  // Switch off the module
--- {"turnOn"} -- Allume le pÈriphÈrique concernÈ  // Switch on the module
--- {"Inverse"} -- On vÈrifie si le pÈriphÈrique est DESACTIVE au lieu d'activÈ // Check if the module is NOT activate instead of activated
--- {"Repeat"} -- On rÈpete les avertissements tant que le pÈriphÈrique n'a pas changÈ d'Ètat. // Repeating the actions as long as the condition is ok
--- {"Portable", <id>} -- {"Portable", 70} -- Le message associÈ ‡ ce pÈriphÈrique sera envoyÈ ‡ ce portable au lieu de ceux par dÈfaut // Push message will be send to this(these) smartphone instead of default one
--- {"Scenario", <id>} -- {"Scenario", 2} -- Lance le scÈnario avec l'identifiant 2 // Start the scene XXX
--- {"StopScenario", <id>} -- {"StopScenario", 2} -- ArrÍte le scÈnario avec l'identifiant 2 // Stop the scene XXX
--- {"EnableScenario", <id>} -- {"EnableScenario", 2} -- Active le scÈnario avec l'identifiant 2 // Enable the scene XXX
--- {"DisableScenario", <id>} -- {"DisableScenario", 2} -- DÈsactive le scÈnario avec l'identifiant 2 // Disable the scene XXX
--- {"Value", <value>} -- {"Value", 20} -- Met la valeur 20 dans le pÈriphÈrique - dimmer une lampe. // Change the value of the dimmer
--- {"Value", <id>, <value>} -- {"Value", 30, 20} -- Met la valeur 20 dans le pÈriphÈrique 30 - dimmer une lampe. // Change the value of the dimmer ID 30
+-- Les param√®tres disponibles sont 
+-- {"turnOff"} -- Eteint le p√©riph√©rique concenn√©  // Switch off the module
+-- {"turnOn"} -- Allume le p√©riph√©rique concern√©  // Switch on the module
+-- {"Inverse"} -- On v√©rifie si le p√©riph√©rique est DESACTIVE au lieu d'activ√© // Check if the module is NOT activate instead of activated
+-- {"Repeat"} -- On r√©pete les avertissements tant que le p√©riph√©rique n'a pas chang√© d'√©tat. // Repeating the actions as long as the condition is ok
+-- {"Portable", <id>} -- {"Portable", 70} -- Le message associ√© √† ce p√©riph√©rique sera envoy√© √† ce portable au lieu de ceux par d√©faut // Push message will be send to this(these) smartphone instead of default one
+-- {"Scenario", <id>} -- {"Scenario", 2} -- Lance le sc√©nario avec l'identifiant 2 // Start the scene XXX
+-- {"StopScenario", <id>} -- {"StopScenario", 2} -- Arr√™te le sc√©nario avec l'identifiant 2 // Stop the scene XXX
+-- {"EnableScenario", <id>} -- {"EnableScenario", 2} -- Active le sc√©nario avec l'identifiant 2 // Enable the scene XXX
+-- {"DisableScenario", <id>} -- {"DisableScenario", 2} -- D√©sactive le sc√©nario avec l'identifiant 2 // Disable the scene XXX
+-- {"Value", <value>} -- {"Value", 20} -- Met la valeur 20 dans le p√©riph√©rique - dimmer une lampe. // Change the value of the dimmer
+-- {"Value", <id>, <value>} -- {"Value", 30, 20} -- Met la valeur 20 dans le p√©riph√©rique 30 - dimmer une lampe. // Change the value of the dimmer ID 30
 -- {"Open"} -- Ouvre le volet. // Open the shutter
 -- {"Open", <value>} -- {"Open", 20} -- Ouvre le volet de 20%. // Open the shutter for 20%
 -- {"Open", <id>, <value>} -- {"Open", 30, 20} -- Ouvre le volet 30 de 20%. // Open the shutter (id 30) for 20%
@@ -1744,36 +1755,36 @@ end
 -- {"Close", <value>} -- {"Close", 20} -- Ferme le volet de 20%. // Close the shutter for 20%
 -- {"Close", <id>, <value>} -- {"Close", 30, 20} -- Ferme le volet 30 de 20%. // Close the shutter (id 30) for 20 %
 -- {"Global", <variable>, <valeur>} -- {"Global", "Maison", "Oui"} -- Met la valeur "Oui" dans la variable globale "Maison" // Update the global variable, put "Oui" in the variable called "Maison"
--- *{"Time", <from>, <to>} -- {"Time", "22:00", "06:00"} -- Ne vÈrifie le pÈriphÈrique QUE si nous sommes dans la/les tranches horaires // Check only if the time is in range
--- {"Armed"} -- Uniquement si le module est armÈ // Check only it the module is armed
--- {"Disarmed"} -- Uniquement si le module est dÈsarmÈ // Check only if the module is disarmed
+-- *{"Time", <from>, <to>} -- {"Time", "22:00", "06:00"} -- Ne v√©rifie le p√©riph√©rique QUE si nous sommes dans la/les tranches horaires // Check only if the time is in range
+-- {"Armed"} -- Uniquement si le module est arm√© // Check only it the module is armed
+-- {"Disarmed"} -- Uniquement si le module est d√©sarm√© // Check only if the module is disarmed
 -- {"setArmed", <id_module>} -- Arme le module // Armed the module
--- {"setDisarmed", <id_module>} -- DÈsarme le module // Disarmed the module
--- {"DST"} -- En mode "saving time" uniquement - en mode heure d'ÈtÈ // Only if we are un summer time
+-- {"setDisarmed", <id_module>} -- D√©sarme le module // Disarmed the module
+-- {"DST"} -- En mode "saving time" uniquement - en mode heure d'√©t√© // Only if we are un summer time
 -- {"NOTDST"} -- En mode "spending time" - en mode heure d'hiver // Only if we are un winter time
 -- {"VirtualDevice", <id,_module>, <id_bouton>} -- {"VirtualDevice", 2, 1} -- Press le bouton (id 1) du module virtuel (id 2) // Press the button 1 from the virtual device Id 2
--- {"Label", <id_module>, <name>, <message>} -- {"Label", 21, "Label1", "activÈ"} -- Affiche "activÈ" dans le label ""ui.Label1.value" du module virtuel 21 // Update the value of a label
--- {"WakeUp", <id,_module>} -- {"WakeUp", 54} -- Essai de rÈveillÈ le module 54 // Try to wake up a module
--- {"Email", <id_user>,} -- {"Email", 2} -- Envoi le message par email ‡ l'utilisateur 2 // Send an email to a specific usermodule
--- {"picture", <id_camera>, <id_user>,} -- {"picture", 2, 3} -- Envoi une capture de la camÈra 2 ‡ l'utilisateur 3 // Send a capture of camera 2 to user 3
--- {"Group", <numero>} -- {"Group", 2} -- Attribut cet ÈvÈnement au groupe 2 // Group attribution
+-- {"Label", <id_module>, <name>, <message>} -- {"Label", 21, "Label1", "activ√©"} -- Affiche "activ√©" dans le label ""ui.Label1.value" du module virtuel 21 // Update the value of a label
+-- {"WakeUp", <id,_module>} -- {"WakeUp", 54} -- Essai de r√©veill√© le module 54 // Try to wake up a module
+-- {"Email", <id_user>,} -- {"Email", 2} -- Envoi le message par email √† l'utilisateur 2 // Send an email to a specific usermodule
+-- {"picture", <id_camera>, <id_user>,} -- {"picture", 2, 3} -- Envoi une capture de la cam√©ra 2 √† l'utilisateur 3 // Send a capture of camera 2 to user 3
+-- {"Group", <numero>} -- {"Group", 2} -- Attribut cet √©v√©nement au groupe 2 // Group attribution
 -- {"Slider", <id_module>, <id_slider>, <valeur>} -- {"Slider", 19, "1", 21} -- Met 21 dans le slider 1 du module 19 // Update de slider, put 21 into the slider 1 from the virtual device id 19
--- {"Program", <id_module>, <no>} -- {"Program", 19, 5} -- ExÈcute le programme 5 du module RGB 19 // Start the program 5 from the RBG module id 19
+-- {"Program", <id_module>, <no>} -- {"Program", 19, 5} -- Ex√©cute le programme 5 du module RGB 19 // Start the program 5 from the RBG module id 19
 -- {"RGB", <id_module>, <col1>, <col2>, <col3>, <col4>} -- {"RGB", 19, 100, 100, 0, 100} -- Modifie la couleur RGB du module 19 // Change the color of a RGBW module id 19
 -- {"Days", "Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday, All, Weekday, Weekend"} -- {"Days", "Weekday"} -- uniquement les jours de semaines // add days condition 
 -- {"Dates", "01/01[/2014]", "31/06[/2014]"} -- Seulement si la date est comprise entre le 1er janvier et le 31 juin inclus // Add date range !! French date format
--- {"StopTask", <id_task>} -- Stop  la t‚che // stop the task
--- {"RestartTask", <id_task>} -- RedÈmarre la t‚che // Restart the task
--- {"MaxTime", <number>} -- Stop aprËs X execution // Stop after X run
+-- {"StopTask", <id_task>} -- Stop  la t√¢che // stop the task
+-- {"RestartTask", <id_task>} -- Red√©marre la t√¢che // Restart the task
+-- {"MaxTime", <number>} -- Stop apr√®s X execution // Stop after X run
 -- {"CurrentIcon", <id_module>, <id_icone>} -- modifie l'icone d'un module virtuel
--- {"If", {<condition>[,<condition>[,...]}} -- Uniquement si toutes les conditions sont respectÈe // Add more condition 
+-- {"If", {<condition>[,<condition>[,...]}} -- Uniquement si toutes les conditions sont respect√©e // Add more condition 
 
 -- * Sample : {"Times", "06:30", "18:30"} , {"Times", "Sunrise", "Sunset"} , {"Times", "Sunrise+30", "Sunset-15"}, {"Times", "Sunrise>07:30", "Sunset<21:00"}
 
 -- ==================================================
 -- [FR]
 -- Si vous n'avez pas mis votre code en haut du script
--- vous avez toujours la possibilitÈ de le mettre ici
+-- vous avez toujours la possibilit√© de le mettre ici
 -- A VOUS DE JOUER
 -- [EN]
 -- If you don't have put your own code up this scrip, 
@@ -1782,6 +1793,6 @@ end
 -- ==================================================
 
 
--- [FR] NE PAS OUBLIER - DÈmarrage du scÈnario
+-- [FR] NE PAS OUBLIER - D√©marrage du sc√©nario
 -- [EN] DON'T FORGET - Starting the scene
 GEA.run()
