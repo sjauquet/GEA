@@ -630,9 +630,10 @@ if (not GEA) then
     elseif (type(id) == "table" and GEA.match(string.lower(id[1]), "global|global.")) then
       return id[2], ""
     elseif (type(id) == "table") then
-      local lowerCaps = string.lower(id[1])
+      lowerCaps = string.lower(id[1])
+
       if (id[2]) then
-        local idNumeric = tonumber(id[2])
+        idNumeric = tonumber(id[2])
       end
 
       if (lowerCaps == "batteries") then
@@ -676,7 +677,7 @@ if (not GEA) then
       elseif (lowerCaps == "weather") then
         return "Weather", ""
       elseif (lowerCaps == "alarm") then
-        return "Alarm " .. fibaro:getValue(idNumeric), "ui.lblAlarme.value"), ""
+        return "Alarm " .. fibaro:getValue(idNumeric, "ui.lblAlarme.value"), ""
       elseif (lowerCaps == "property") then
         return "Property [" .. id[2] .. "|" .. id[3] .. "] = " .. id[4], GEA.getRoom(idNumeric))
       elseif (lowerCaps == "property!") then
@@ -1754,7 +1755,7 @@ if (not GEA) then
             else
               fibaro:call(id, entry[GEA.keys["PARAMS"]][i][1])
               GEA.log("sendActions", entry, "!ACTION! :  " .. entry[GEA.keys["PARAMS"]][i][1], true)
-                        
+
             end
           end
         end
@@ -1926,7 +1927,9 @@ if (not GEA) then
         end
       end
 
-      local typeEntry = type(entry[GEA.keys["ID"]])
+      if (entry) then
+        typeEntry = type(entry[GEA.keys["ID"]])
+      end
 
       if (entry and (typeEntry == "nil" or typeEntry == "boolean" or typeEntry == "number" or typeEntry == "table")) then
         if (typeEntry == "nil" or typeEntry == "boolean") then
