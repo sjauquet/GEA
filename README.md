@@ -216,15 +216,6 @@ Ce script a pour but de contrôler, à intervalles réguliers, l'état de votre 
   GEA.add({"Dead", id["LEDS_ESCALIER"]}, 5*60, "", {{"WakeUp", id["LEDS_ESCALIER"]}}) -- extérieur
 ```
 
-
-## Contributing
-
-1. Fork it!
-2. Create your feature branch: `git checkout -b my-new-feature`
-3. Commit your changes: `git commit -am 'Add some feature'`
-4. Push to the branch: `git push origin my-new-feature`
-5. Submit a pull request :D
-
 ## Historique
 
 http://www.domotique-fibaro.fr/index.php/topic/1082-gea-gestionnaire-dévénements-automatique/?p=12428
