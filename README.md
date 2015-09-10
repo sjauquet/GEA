@@ -6,24 +6,24 @@ Ce scénario permet une annotation plus simple que le code LUA. Il nécessite n�
 This scene allow you to check every X second the status of a module and send actions if the module is activated since too long.
 This scene allow you a more simple annotation than LUA. It requires some knowledge.
 
-## Installation
+## Installation / Setup
 
 - Depuis le panneau des variables, créer une variable (simple) appelée "GEA_Tasks" (son contenu n'a pas d'importance).
-- On the variable panel, create a simple variable called "GEA_Tasks" with a random content.
+On the variable panel, create a simple variable called "GEA_Tasks" with a random content.
 
 - Créer un scénario en mode LUA.
-- Create a scene in LUA mode.
+Create a scene in LUA mode.
 
 - Insérer le script GEA.lua en le copiant-collant.
-- Insert GEA.lua script with copy-paste.
+Insert GEA.lua script with copy-paste.
 
 - Configurer GEA avec la fonction configure si besoin.
-- Configure GEA with configure function if necessary.
+Configure GEA with configure function if necessary.
 
 - Ajouter vos événements dans la fonction setEvents. Vous pouvez vous servir des exemples du fichier samples.lua et les copier dans cette fonction.
-- Add yours events in the setEvents function. You can grab samples in samples.lua file and copy them in this function.
+Add yours events in the setEvents function. You can grab samples in samples.lua file and copy them in this function.
 
-## Usage
+## Usage / How to use
 
 Ce script a pour but de contrôler, à intervalles réguliers, l'état de votre environnement pendant une durée déterminée afin de vous avertir d'éventuels soucis et si nécessaire d'effectuer automatiquement certaines actions.
 This script is designed to control at regular intervals the state of your environment for a specified time to alert you to potential problems and if necessary to automatically perform certain actions.
@@ -79,7 +79,7 @@ GEA.add({"Value-", id["TEMP"], 18}, 30*60, "Il fait froid au salon #value# à #t
 --  GEA.add({"Batteries", 60}, 24*60*60, "", {{"Repeat"}})
 ```
 
-## Paramètres existants / availables parameters
+## Paramètres existants / available parameters
 
 Les paramètres disponibles sont 
 -- {"turnOff"} -- Eteint le périphérique concenné  / Switch off the module
