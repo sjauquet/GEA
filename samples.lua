@@ -221,3 +221,49 @@ GEA.add({"Batteries", 60}, 24*60*60, "", {{"Repeat"}})
 -- Vérification des modules parfois "dead" / Checking sometimes dead modules
 GEA.add({"Dead", id["POELE"]}, 5*60, "", {{"WakeUp", id["POELE"]}})
 GEA.add({"Dead", id["LEDS_ESCALIER"]}, 5*60, "", {{"WakeUp", id["LEDS_ESCALIER"]}}) -- extérieur
+
+
+
+-- === Paramètres existants / available parameters === --
+
+-- {"turnOff"} -- Eteint le périphérique concenné  / Switch off the module
+-- {"turnOn"} -- Allume le périphérique concerné  / Switch on the module
+-- {"Inverse"} -- On vérifie si le périphérique est DESACTIVE au lieu d'activé / Check if the module is NOT activate instead of activated
+-- {"Repeat"} -- On répete les avertissements tant que le périphérique n'a pas changé d'état. / Repeating the actions as long as the condition is ok
+-- {"Portable", <id>} -- {"Portable", 70} -- Le message associé à ce périphérique sera envoyé à ce portable au lieu de ceux par défaut / Push message will be send to this(these) smartphone instead of default one
+-- {"Scenario", <id>} -- {"Scenario", 2} -- Lance le scénario avec l'identifiant 2 / Start the scene XXX
+-- {"StopScenario", <id>} -- {"StopScenario", 2} -- Arrête le scénario avec l'identifiant 2 / Stop the scene XXX
+-- {"EnableScenario", <id>} -- {"EnableScenario", 2} -- Active le scénario avec l'identifiant 2 / Enable the scene XXX
+-- {"DisableScenario", <id>} -- {"DisableScenario", 2} -- Désactive le scénario avec l'identifiant 2 / Disable the scene XXX
+-- {"Value", <value>} -- {"Value", 20} -- Met la valeur 20 dans le périphérique - dimmer une lampe. / Change the value of the dimmer
+-- {"Value", <id>, <value>} -- {"Value", 30, 20} -- Met la valeur 20 dans le périphérique 30 - dimmer une lampe. / Change the value of the dimmer ID 30
+-- {"Open"} -- Ouvre le volet. / Open the shutter
+-- {"Open", <value>} -- {"Open", 20} -- Ouvre le volet de 20%. / Open the shutter for 20%
+-- {"Open", <id>, <value>} -- {"Open", 30, 20} -- Ouvre le volet 30 de 20%. / Open the shutter (id 30) for 20%
+-- {"Close"} -- Ferme le volet. / Close the shutter
+-- {"Close", <value>} -- {"Close", 20} -- Ferme le volet de 20%. / Close the shutter for 20%
+-- {"Close", <id>, <value>} -- {"Close", 30, 20} -- Ferme le volet 30 de 20%. / Close the shutter (id 30) for 20 %
+-- {"Global", <variable>, <valeur>} -- {"Global", "Maison", "Oui"} -- Met la valeur "Oui" dans la variable globale "Maison" / Update the global variable, put "Oui" in the variable called "Maison"
+-- *{"Time", <from>, <to>} -- {"Time", "22:00", "06:00"} -- Ne vérifie le périphérique QUE si nous sommes dans la/les tranches horaires / Check only if the time is in range
+-- {"Armed"} -- Uniquement si le module est armé / Check only it the module is armed
+-- {"Disarmed"} -- Uniquement si le module est désarmé / Check only if the module is disarmed
+-- {"setArmed", <id_module>} -- Arme le module / Armed the module
+-- {"setDisarmed", <id_module>} -- Désarme le module / Disarmed the module
+-- {"DST"} -- En mode "saving time" uniquement - en mode heure d'été / Only if we are un summer time
+-- {"NOTDST"} -- En mode "spending time" - en mode heure d'hiver / Only if we are un winter time
+-- {"VirtualDevice", <id,_module>, <id_bouton>} -- {"VirtualDevice", 2, 1} -- Press le bouton (id 1) du module virtuel (id 2) / Press the button 1 from the virtual device Id 2
+-- {"Label", <id_module>, <name>, <message>} -- {"Label", 21, "Label1", "activé"} -- Affiche "activé" dans le label ""ui.Label1.value" du module virtuel 21 / Update the value of a label
+-- {"WakeUp", <id,_module>} -- {"WakeUp", 54} -- Essai de réveillé le module 54 / Try to wake up a module
+-- {"Email", <id_user>,} -- {"Email", 2} -- Envoi le message par email à l'utilisateur 2 / Send an email to a specific usermodule
+-- {"picture", <id_camera>, <id_user>,} -- {"picture", 2, 3} -- Envoi une capture de la caméra 2 à l'utilisateur 3 / Send a capture of camera 2 to user 3
+-- {"Group", <numero>} -- {"Group", 2} -- Attribut cet événement au groupe 2 / Group attribution
+-- {"Slider", <id_module>, <id_slider>, <valeur>} -- {"Slider", 19, "1", 21} -- Met 21 dans le slider 1 du module 19 / Update de slider, put 21 into the slider 1 from the virtual device id 19
+-- {"Program", <id_module>, <no>} -- {"Program", 19, 5} -- Exécute le programme 5 du module RGB 19 / Start the program 5 from the RBG module id 19
+-- {"RGB", <id_module>, <col1>, <col2>, <col3>, <col4>} -- {"RGB", 19, 100, 100, 0, 100} -- Modifie la couleur RGB du module 19 / Change the color of a RGBW module id 19
+-- {"Days", "Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday, All, Weekday, Weekend"} -- {"Days", "Weekday"} -- uniquement les jours de semaines / add days condition 
+-- {"Dates", "01/01[/2014]", "31/06[/2014]"} -- Seulement si la date est comprise entre le 1er janvier et le 31 juin inclus / Add date range !! French date format
+-- {"StopTask", <id_task>} -- Stop  la tâche / stop the task
+-- {"RestartTask", <id_task>} -- Redémarre la tâche / Restart the task
+-- {"MaxTime", <number>} -- Stop après X execution / Stop after X run
+-- {"CurrentIcon", <id_module>, <id_icone>} -- modifie l'icone d'un module virtuel
+-- {"If", {<condition>[,<condition>[,...]}} -- Uniquement si toutes les conditions sont respectée / Add more condition 
