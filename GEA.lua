@@ -1663,7 +1663,7 @@ if (not GEA) then
   end
   
   -- ---------------------------------------------------------------------------
-  -- Contrôle tous les périphérique déclarés toutes les X secondes
+  -- Contrôle tous les périphériques déclarés toutes les X secondes
   -- ---------------------------------------------------------------------------    
   GEA.log = function(method, entry, message, force, color) 
     if (force or GEA.debug) then
@@ -1672,44 +1672,48 @@ if (not GEA) then
 
       if (not entry and not force) then 
         return 
-      end
 
-      if (entry and entry[GEA.keys["NAME"]]) then 
-        name =  entry[GEA.keys["NAME"]] 
-        if type(name) == "table" then
-          name = name[1]
+      elseif (entry) then
+        local typeEntry = type(entry[GEA.keys["ID"]])
+
+        if (entry[GEA.keys["NAME"]]) then 
+          name =  entry[GEA.keys["NAME"]] 
+
+          if (type(name) == "table") then
+            name = name[1]
+          end
+
+          name = name .. " ] "
+
+          if (typeEntry == "nil" or typeEntry == "boolean") then
+            msg = msg .. "[ " .. name
+          elseif (typeEntry == "number") then
+            msg = msg .. "[ " .. entry[GEA.keys["ID"]] .. " | " .. name
+          elseif (typeEntry == "table") then
+            lowerId = string.lower(entry[GEA.keys["ID"]][1])
+
+            if (GEA.match(lowerId, "global|global.")) then 
+              msg = msg .. "[ " .. entry[GEA.keys["ID"]][2] .. "=" .. entry[GEA.keys["ID"]][3] .. " ] "
+            elseif (lowerId == "batteries") then 
+              msg = msg .. "[ " .. entry[GEA.keys["ID"]][2] .. " ] "
+            elseif (lowerId == "group") then 
+              msg = msg .. "[ " .. name
+            elseif (GEA.match(lowerId, "sensor|sensor.|value|value.|dead|sceneactivation|battery")) then 
+              msg = msg .. "[ " .. name
+            elseif (GEA.match(lowerId, "slider|slider.|label|label.|property|property.")) then 
+              msg = msg .. "[ " .. name
+            elseif (lowerId == "weather") then 
+              msg = msg .. "[ Weather ] "         
+            elseif (lowerId == "function") then 
+              msg = msg .. "[ Function ] "
+            elseif (lowerId == "alarm") then
+              msg = msg .. "Alarm " .. fibaro:getValue(tonumber(entry[GEA.keys["ID"]][2]), "ui.lblAlarme.value")
+            else 
+              -- autre à venir
+            end
+          end
         end
-      end
-
-      if (entry) then
-        typeEntry = type(entry[GEA.keys["ID"]])
-      end
-
-      if (entry and (typeEntry == "nil" or typeEntry == "boolean" or typeEntry == "number" or typeEntry == "table")) then
-        if (typeEntry == "nil" or typeEntry == "boolean") then
-          msg = msg .. "[ " .. name .. " ] "
-        elseif (typeEntry == "number") then
-          msg = msg .. "[ " .. entry[GEA.keys["ID"]] .. " | " .. name .. " ] "
-        elseif (typeEntry == "table" and (GEA.match(string.lower(entry[GEA.keys["ID"]][1]), "global|global."))) then 
-          msg = msg .. "[ " .. entry[GEA.keys["ID"]][2] .. "=" .. entry[GEA.keys["ID"]][3] .. " ] "
-        elseif (typeEntry == "table" and string.lower(entry[GEA.keys["ID"]][1]) == "batteries") then 
-          msg = msg .. "[ " .. entry[GEA.keys["ID"]][2] .. " ] "
-        elseif (typeEntry == "table" and string.lower(entry[GEA.keys["ID"]][1]) == "group") then 
-          msg = msg .. "[ " .. name .. " ] "
-        elseif (typeEntry == "table" and (GEA.match(string.lower(entry[GEA.keys["ID"]][1]), "sensor|sensor.|value|value.|dead|sceneactivation|battery"))) then 
-          msg = msg .. "[ " .. name .. " ] "
-        elseif (typeEntry == "table" and (GEA.match(string.lower(entry[GEA.keys["ID"]][1]), "slider|slider.|label|label.|property|property."))) then 
-          msg = msg .. "[ " .. name .. " ] "
-        elseif (typeEntry == "table" and (string.lower(entry[GEA.keys["ID"]][1]) == "weather")) then 
-          msg = msg .. "[ Weather ] "         
-        elseif (typeEntry == "table" and (string.lower(entry[GEA.keys["ID"]][1]) == "function")) then 
-          msg = msg .. "[ Function ] "
-        elseif (type(id) == "table" and string.lower(entry[GEA.keys["ID"]][1]) == "alarm") then
-          msg = msg .. "Alarm " .. fibaro:getValue(tonumber(entry[GEA.keys["ID"]][2]), "ui.lblAlarme.value")
-        else 
-          -- autre à venir
-        end
-      end
+      end      
 
       if (method and method ~= "") then
         msg = msg .. string.format("%-20s", method) .. ": "
@@ -1719,37 +1723,42 @@ if (not GEA) then
         msg = msg .. string.format("%-20s", message)
       end
 
-      if (entry and entry[GEA.keys["INDEX"]]) then
-        msg = msg .. " (ID:" .. entry[GEA.keys["INDEX"]] .. ")"
-      end
+      if (entry) then
+        if (entry[GEA.keys["INDEX"]]) then
+          msg = msg .. " (ID: " .. entry[GEA.keys["INDEX"]] .. ")"
+        end
 
-      if (entry and entry[GEA.keys["PARAMS"]] and type(entry[GEA.keys["PARAMS"]]) == "table" and #entry[GEA.keys["PARAMS"]] > 0) then 
-        for i = 1, #entry[GEA.keys["PARAMS"]] do 
-          msg = msg .. " ["
+        if (entry[GEA.keys["PARAMS"]] and type(entry[GEA.keys["PARAMS"]]) == "table" and #entry[GEA.keys["PARAMS"]] > 0) then 
+          for i = 1, #entry[GEA.keys["PARAMS"]] do 
+            msg            = msg .. " ["
+            local paramToIterate = entry[GEA.keys["PARAMS"]][i]
 
-          if (type(entry[GEA.keys["PARAMS"]][i]) == "table" ) then
-            for j = 1, #entry[GEA.keys["PARAMS"]][i] do
-              if (string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "if") then
-                if (j == 1) then 
-                  msg = msg .. "If..." 
+            if (type(paramToIterate) == "table") then
+              for j = 1, #paramToIterate do
+                if (string.lower(paramToIterate[1]) == "if") then
+                  if (j == 1) then 
+                    msg = msg .. "If..." 
+                  end
+                elseif (string.lower(paramToIterate[1]) == "function") then
+                  if (j == 1) then 
+                    msg = msg .. "Function..." 
+                  end
+                else
+                  msg = msg .. paramToIterate[j] .. ","
                 end
-              elseif (string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "function") then
-                if (j == 1) then 
-                  msg = msg .. "Function..." 
-                end
-              else
-                msg = msg .. entry[GEA.keys["PARAMS"]][i][j] .. ","
               end
             end
-          end
 
-          msg = msg:sub(1, msg:len()-1) .. "]"
-        end   
+            msg = msg:sub(1, msg:len()-1) .. "]"
+          end   
+        end
       end
 
       fibaro:debug("<span style=\"color:" .. (color or "white") .. "; padding-left: 125px; display:inline-block; width:80%; margin-top:-18px; padding-top:-18px; text-align:left;\">" .. msg .. "</span>")
     end
   end
+
+
 end
 -- Démarrage de GEA
 GEA.run()
