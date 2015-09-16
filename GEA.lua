@@ -1614,20 +1614,7 @@ if (not GEA) then
 
         local start = os.time()
 
-        if (not GEA.pause()) then 
-          for i = 1, nbElement do
-            GEA.log(GEA.translate[GEA.language]["RUN"], GEA.todo[i], GEA.translate[GEA.language]["CHECKING"], false)
-            if (GEA.catchError) then
-              if (not pcall(function() GEA.check(GEA.todo[i], i) end)) then
-                GEA.log(GEA.translate[GEA.language]["ERROR"], GEA.todo[i], GEA.translate[GEA.language]["CHECKING"], true)
-              end
-            else
-              GEA.check(GEA.todo[i], i)
-            end
-          end
-        end
-
-        local stop = os.time()
+        local stop = GEA.checkAllToDo(nbElement) 
         local diff = (stop - start) -- / 1000
 
         if (firstofall) then 
@@ -1646,20 +1633,29 @@ if (not GEA) then
         first = first + 1
       end
     else
-      if (not GEA.pause()) then 
-        for i = 1, nbElement do
-          GEA.log(GEA.translate[GEA.language]["RUN"], GEA.todo[i], GEA.translate[GEA.language]["CHECKING"], false)
-
-          if (GEA.catchError) then
-            if (not pcall(function() GEA.check(GEA.todo[i], i) end)) then
-              GEA.log(GEA.translate[GEA.language]["ERROR"], GEA.todo[i], GEA.translate[GEA.language]["CHECKING"], true, red)
-            end
-          else
-            GEA.check(GEA.todo[i], i) 
-          end
-        end
-      end   
+      GEA.checkAllToDo(nbElement)   
     end
+  end
+
+  -- ---------------------------------------------------------------------------
+  --  Check les tâches à effectuer sinon, log si une erreur survient
+  -- --------------------------------------------------------------------------- 
+  GEA.checkAllToDo = function(nbElement)
+    if (not GEA.pause()) then 
+      for i = 1, nbElement do
+        GEA.log(GEA.translate[GEA.language]["RUN"], GEA.todo[i], GEA.translate[GEA.language]["CHECKING"], false)
+
+        if (GEA.catchError) then
+          if (not pcall(function() GEA.check(GEA.todo[i], i) end)) then
+            GEA.log(GEA.translate[GEA.language]["ERROR"], GEA.todo[i], GEA.translate[GEA.language]["CHECKING"], true, red)
+          end
+        else
+          GEA.check(GEA.todo[i], i) 
+        end
+      end
+    end
+
+    return os.time()   
   end
   
   -- ---------------------------------------------------------------------------
