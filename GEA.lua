@@ -1,14 +1,6 @@
 --[[
 %% autostart
 %% properties
-5 value
-68 value
-58 value
-56 value
-25 value
-112 value
-120 value
-39 value
 %% globals
 --]]
 
@@ -103,6 +95,7 @@ if (not GEA) then
   GEA.translate["FR"] = {
     ACTIONS          = "traitement des actions",
     ACTIVATED        = "activé",
+    ACTIVATED_SINCE  = "activé depuis ",
     ADDED_DIRECT     = "ajout de la tâche pour lancement instantané",
     ADDED_FOR        = "ajout de la tâche pour",
     ALWAYS           = "Toujours",
@@ -117,6 +110,7 @@ if (not GEA) then
     CURRENT_TIME     = "L'heure actuelle",
     DATE_NOT_ALLOWED = "n'est pas dans la plage de dates spécifiées",
     DESACTIVATED     = "désactivé",
+    DEVICE_NOT_FOUND = "ID non trouvé",
     DONE             = "tâche effectuée et suspendue",
     ERROR            = "!!! ERREUR !!!",
     ERROR_IF         = "IF malformé",
@@ -128,7 +122,7 @@ if (not GEA) then
     NOTHING_TODO     = "aucun traitement à effectuer",
     NOTHING_TODOID   = "aucun traitement à effectuer pour l'ID :",
     NOT_INCLUDED     = "n'est pas inclus dans",
-    REQUERIED        = "attendu",
+    REQUIRED         = "attendu",
     RESTART          = "Redémarrage",
     RUN              = "En cours",
     RUNNING          = "en exécution",
@@ -151,7 +145,8 @@ if (not GEA) then
 
   GEA.translate["EN"] = {
     ACTIONS          = "doing actions",
-    ACTIVATED        = "activate",
+    ACTIVATED        = "activated",
+    ACTIVATED_SINCE  = "activated since ",
     ADDED_DIRECT     = "task added for instant run",
     ADDED_FOR        = "task added for",
     ALWAYS           = "Always",
@@ -164,8 +159,9 @@ if (not GEA) then
     CHECK_MAIN       = "activation checking",
     CHECK_STARTED    = "starting checking",
     CURRENT_TIME     = "Current hour",
-    DATE_NOT_ALLOWED = "is not in the specify dates range",
-    DESACTIVATED     = "désactivate",
+    DATE_NOT_ALLOWED = "is not in the specified dates range",
+    DESACTIVATED     = "desactivated",
+    DEVICE_NOT_FOUND = "Device ID not found",
     DONE             = "task done and suspended",
     ERROR            = "!!! ERROR !!!",
     ERROR_IF         = "IF malformed",
@@ -177,7 +173,7 @@ if (not GEA) then
     NOTHING_TODO     = "nothing to do",
     NOTHING_TODOID   = "nothing to do for ID:",
     NOT_INCLUDED     = "is not included in",
-    REQUERIED        = "excpeted",
+    REQUIRED         = "excepted",
     RESTART          = "Restart",
     RUN              = "Run",
     RUNNING          = "Running",
@@ -223,6 +219,7 @@ if (not GEA) then
           notStarted = true 
         end
       end
+
       params = arg
     end
 
@@ -237,11 +234,14 @@ if (not GEA) then
           table.insert(conditions, id[i])
           name[i], room[i] = GEA.getName(id[i])
         end
+
         id = id[1]
+
         if (type(id) == "table" and type(id[1]) == "string" and string.lower(id[1]) == "alarm") then
           repeating = false
           secondes  = 1
         end
+
         table.insert(params, {"If", conditions})
       elseif (type(id[1]) == "string") then
         if (string.lower(id[1]) == "global" and #id > 2 and id[2] == "" and id[3] == "") then
@@ -259,12 +259,15 @@ if (not GEA) then
 
     if (GEA.source["type"] == "autostart" and tonumber(entry[GEA.keys["SECONDES"]]) >= 0) then
       GEA.insert(entry)
-      GEA.log("Add Autostart", entry, GEA.translate[GEA.language]["ADDED_FOR"].. " " .. secondes .. " " .. GEA.translate[GEA.language]["SECONDS"], true, "grey")
+      GEA.log("Add Autostart", entry, GEA.translate[GEA.language]["ADDED_FOR"] .. " " .. secondes .. " " .. GEA.translate[GEA.language]["SECONDS"], true, "grey")
+
       if (notStarted) then 
         local cIndex = GEA.getCode("S", entry[GEA.keys["INDEX"]])
+
         if (GEA.suspended ~= nil) then
           GEA.suspended = string.gsub(GEA.suspended, cIndex, "")
         end
+
         GEA.suspended = GEA.suspended .. cIndex     
       end
     elseif (GEA.source["type"] == "global" and tonumber(entry[GEA.keys["SECONDES"]]) < 0) then
@@ -274,16 +277,19 @@ if (not GEA) then
       end
     elseif (GEA.source["type"] == "property" and tonumber(entry[GEA.keys["SECONDES"]]) < 0) then
       local id = 0
+
       if (type(entry[GEA.keys["ID"]]) == "number") then
         id = entry[GEA.keys["ID"]]
       elseif (type(entry[GEA.keys["ID"]]) == "table") then
         id = entry[GEA.keys["ID"]][2]
+
         if (string.lower(entry[GEA.keys["ID"]][1]) == "sceneactivation" and #entry[GEA.keys["ID"]] > 2) then
           if (tonumber(fibaro:getValue(id, "sceneActivation")) ~= tonumber(entry[GEA.keys["ID"]][3])) then
             id = -1
           end
         end
       end
+
       if (tonumber(id) == tonumber(GEA.source["deviceID"])) then
         GEA.insert(entry)
         GEA.log("Add Property", entry, GEA.translate[GEA.language]["ADDED_DIRECT"], true, "grey")
@@ -353,6 +359,7 @@ if (not GEA) then
     if (glob ~= nil) then
       return string.match(glob, cIndex)
     end
+
     return nil
   end
 
@@ -448,6 +455,7 @@ if (not GEA) then
 
     if (type(roomId) == "number") then
       local roomName = fibaro:getRoomName(roomId)
+
       if (type(roomName) == "string") then
         return roomName
       end
@@ -478,7 +486,6 @@ if (not GEA) then
   -- Vérification des plages de date
   -- ---------------------------------------------------------------------------
   GEA.checkTimes = function(entry)
-  
     GEA.log("Check", entry, GEA.translate[GEA.language]["CHECKING_DATE"], false)
     
     if (not entry[GEA.keys["PARAMS"]]) then
@@ -493,23 +500,35 @@ if (not GEA) then
 
     if (type(entry[GEA.keys["PARAMS"]]) == "table") then
       for i = 1, #entry[GEA.keys["PARAMS"]] do
-        if (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "days") then
-          dayFound = GEA.checkDay(entry[GEA.keys["PARAMS"]][i][2])
-        elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "dst") then
-          dst = os.date("*t", os.time()).isdst
-        elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "notdst") then
-          dst = not os.date("*t", os.time()).isdst
-        elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "dates") then
-          dateFound = false
-          local now = os.date("%Y%m%d")
-          -- todo check
-          local from = entry[GEA.keys["PARAMS"]][i][2]
-          if (string.len(from) == 5) then from = from .. "/" .. os.date("%Y") end
-          from = string.format ("%04d", GEA.split(from, "/")[3]) .. string.format("%02d", GEA.split(from, "/")[2]) .. string.format("%02d", GEA.split(from, "/")[1])
-          local to = entry[GEA.keys["PARAMS"]][i][3]
-          if (string.len(to) == 5) then to = to .. "/" .. os.date("%Y") end
-          to = string.format ("%04d", GEA.split(to, "/")[3]) .. string.format("%02d", GEA.split(to, "/")[2]) .. string.format("%02d", GEA.split(to, "/")[1])
-          dateFound = tonumber(now) >= tonumber(from) and tonumber(now) <= tonumber(to)
+        local iterator = entry[GEA.keys["PARAMS"]][i]
+
+        if (type(iterator) == "table") then
+          if (string.lower(iterator[1]) == "days") then
+            dayFound = GEA.checkDay(iterator[2])
+          elseif (string.lower(iterator[1]) == "dst") then
+            dst = os.date("*t", os.time()).isdst
+          elseif (string.lower(iterator[1]) == "notdst") then
+            dst = not os.date("*t", os.time()).isdst
+          elseif (string.lower(iterator[1]) == "dates") then
+            dateFound = false
+            local now = os.date("%Y%m%d")
+            -- todo check
+            local from = iterator[2]
+
+            if (string.len(from) == 5) then 
+              from = from .. "/" .. os.date("%Y") 
+            end
+
+            from     = string.format ("%04d", GEA.split(from, "/")[3]) .. string.format("%02d", GEA.split(from, "/")[2]) .. string.format("%02d", GEA.split(from, "/")[1])
+            local to = iterator[3]
+
+            if (string.len(to) == 5) then 
+              to = to .. "/" .. os.date("%Y") 
+            end
+
+            to        = string.format ("%04d", GEA.split(to, "/")[3]) .. string.format("%02d", GEA.split(to, "/")[2]) .. string.format("%02d", GEA.split(to, "/")[1])
+            dateFound = tonumber(now) >= tonumber(from) and tonumber(now) <= tonumber(to)
+          end
         end
       end
     end
@@ -518,19 +537,34 @@ if (not GEA) then
       local found = false
 
       for i = 1, #entry[GEA.keys["PARAMS"]] do
-        if (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "dates") then
-          if (not found) then dateFound = false end
+        local iterator = entry[GEA.keys["PARAMS"]][i]
+
+        if (type(iterator) == "table" and string.lower(iterator[1]) == "dates") then
+          if (not found) then 
+            dateFound = false 
+          end
+
           local now = os.date("%Y%m%d")
           -- todo check
-          local from = entry[GEA.keys["PARAMS"]][i][2]
-          if (string.len(from) == 5) then from = from .. "/" .. os.date("%Y") end
+          local from = iterator[2]
+
+          if (string.len(from) == 5) then 
+            from = from .. "/" .. os.date("%Y") 
+          end
+
           from = string.format("%04d", GEA.split(from, "/")[3]) .. string.format("%02d", GEA.split(from, "/")[2]) .. string.format("%02d", GEA.split(from, "/")[1])
-          local to = entry[GEA.keys["PARAMS"]][i][3]
-          if (string.len(to) == 5) then to = to .. "/".. os.date("%Y") end
+          local to = iterator[3]
+
+          if (string.len(to) == 5) then 
+            to = to .. "/".. os.date("%Y") 
+          end
+
           to = string.format("%04d", GEA.split(to, "/")[3]) .. string.format("%02d", GEA.split(to, "/")[2]) .. string.format("%02d", GEA.split(to, "/")[1])
+
           if (tonumber(from) > tonumber(to) and tonumber(from) > tonumber(now)) then
             from = tonumber(from) - 10000
           end
+
           if (tonumber(now) >= tonumber(from) and tonumber(now) <= tonumber(to)) then
             dateFound = true
             found     = true
@@ -541,9 +575,12 @@ if (not GEA) then
 
     if (dayFound and dst and dateFound) then
       for i = 1, #entry[GEA.keys["PARAMS"]] do
-        if (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "time") then 
+        local iterator = entry[GEA.keys["PARAMS"]][i]
+
+        if (type(iterator) == "table" and string.lower(iterator[1]) == "time") then 
           notFound = false
-          if (GEA.checkTime(entry, GEA.flatTime(entry[GEA.keys["PARAMS"]][i][2]) .. "-" .. GEA.flatTime(entry[GEA.keys["PARAMS"]][i][3]))) then
+
+          if (GEA.checkTime(entry, GEA.flatTime(iterator[2]) .. "-" .. GEA.flatTime(iterator[3]))) then
             return true
           end
         end
@@ -584,7 +621,7 @@ if (not GEA) then
       t = GEA.flatTime(GEA.split(t, ">")[1]) .. ">" .. GEA.flatTime(GEA.split(t, ">")[2])
     end
 
-    if(string.find(t, "+")) then
+    if (string.find(t, "+")) then
       local time    = GEA.split(t, "+")[1]
       local add     = GEA.split(t, "+")[2]
       local td      = os.date("*t")
@@ -595,7 +632,7 @@ if (not GEA) then
       t   = os.date("*t", sun)
       t   = string.format("%02d", t.hour) .. ":" .. string.format("%02d", t.min)
 
-    elseif(string.find(t, "-")) then
+    elseif (string.find(t, "-")) then
       local time = GEA.split(t, "-")[1]
       local add  = GEA.split(t, "-")[2]
       local td   = os.date("*t")
@@ -611,6 +648,7 @@ if (not GEA) then
 
       s1 = string.format("%02d", GEA.split(s1, ":")[1]) .. ":" .. string.format("%02d", GEA.split(s1, ":")[2])
       s2 = string.format("%02d", GEA.split(s2, ":")[1]) .. ":" .. string.format("%02d", GEA.split(s2, ":")[2])
+
       if (s1 < s2) then 
         t = s1 
       else 
@@ -632,7 +670,6 @@ if (not GEA) then
 
     else
       t = string.format("%02d", GEA.split(t, ":")[1]) .. ":" .. string.format("%02d", GEA.split(t, ":")[2])
-
     end
   
     return t
@@ -642,8 +679,8 @@ if (not GEA) then
   -- Vérification d'une plage de date
   -- ---------------------------------------------------------------------------
   GEA.checkTime = function(entry, times)
-
     GEA.log("CheckTime", entry, GEA.translate[GEA.language]["CHECKING_TIME"] .. " " .. times, false)
+
     if (not times or times == "") then
       return true
     end
@@ -704,6 +741,7 @@ if (not GEA) then
       if (not GEA.regexFullAllow) then
         words[i] = "^"..words[i].."$"
       end
+
       if (string.match(s, GEA.trim(words[i]))) then 
         return true 
       end
@@ -716,7 +754,6 @@ if (not GEA) then
   -- On vérifie pour un pérphérique
   -- ---------------------------------------------------------------------------
   GEA.check = function(entry, index)
-  
     GEA.log("Check", entry, GEA.translate[GEA.language]["CHECK_STARTED"], false)
 
     if (GEA.isTask("R", entry[GEA.keys["INDEX"]]) ~= nil) then
@@ -739,14 +776,14 @@ if (not GEA) then
     end
     
     if (GEA.checkTimes(entry)) then
-      if (GEA.isActivate(entry, 1, entry)) then
+      if (GEA.isActivated(entry, 1, entry)) then
         -- le périphérique est actif, on incrémente le compteur
         if (entry[GEA.keys["SECONDES"]] < 0) then
-          local maxglob =  GEA.isTask("M", entry[GEA.keys["INDEX"]].."{(%d+)}") 
+          local maxglob =  GEA.isTask("M", entry[GEA.keys["INDEX"]] .. "{(%d+)}") 
 
           if (maxglob ~= nil) then
             entry[GEA.keys["TOTALRUNS"]] = tonumber(maxglob)
-            GEA.addOrRemoveTask("M", entry[GEA.keys["INDEX"]].."{(%d+)}", false)
+            GEA.addOrRemoveTask("M", entry[GEA.keys["INDEX"]] .. "{(%d+)}", false)
           end
         end
         
@@ -759,7 +796,7 @@ if (not GEA) then
         end
 
         if (not entry[GEA.keys["DONE"]]) then
-          GEA.log("Check", entry, "activé depuis " .. (entry[GEA.keys["TOTALRUNS"]] * GEA.checkEvery)  .. "/" .. entry[GEA.keys["SECONDES"]], false)
+          GEA.log("Check", entry, GEA.translate[GEA.language]["ACTIVATED_SINCE"] .. (entry[GEA.keys["TOTALRUNS"]] * GEA.checkEvery)  .. "/" .. entry[GEA.keys["SECONDES"]], false)
         end
         
         if (entry[GEA.keys["SECONDES"]] < 0 and (entry[GEA.keys["MAXTIME"]] == -1 or (entry[GEA.keys["TOTALRUNS"]]-1) < entry[GEA.keys["MAXTIME"]])) then
@@ -790,11 +827,9 @@ if (not GEA) then
 
         if (entry[GEA.keys["ISREPEAT"]] and entry[GEA.keys["MAXTIME"]] == -1) then
            --- nothing
-        else
-          if (entry[GEA.keys["MAXTIME"]] == -1 or (entry[GEA.keys["TOTALRUNS"]] >= entry[GEA.keys["MAXTIME"]])) then
-            GEA.log("Done", entry, GEA.translate[GEA.language]["DONE"], true, "DarkSlateBlue")
-            entry[GEA.keys["DONE"]] = true
-          end
+        elseif (entry[GEA.keys["MAXTIME"]] == -1 or (entry[GEA.keys["TOTALRUNS"]] >= entry[GEA.keys["MAXTIME"]])) then
+          GEA.log("Done", entry, GEA.translate[GEA.language]["DONE"], true, "DarkSlateBlue")
+          entry[GEA.keys["DONE"]] = true
         end
 
         entry[GEA.keys["NBRUN"]] = 0
@@ -811,11 +846,11 @@ if (not GEA) then
   -- Vérification spécifique pour savoir si un périphérique est activé 
   -- ou non
   -- ---------------------------------------------------------------------------
-  GEA.isActivate = function(entry, nb, master)
+  GEA.isActivated = function(entry, nb, master)
     if (nb == 1) then
-      GEA.log("isActivate", entry, GEA.translate[GEA.language]["CHECK_MAIN"], false)
+      GEA.log("isActivated", entry, GEA.translate[GEA.language]["CHECK_MAIN"], false)
     else
-      GEA.log("isActivate", entry, GEA.translate[GEA.language]["CHECK_IF"], false)
+      GEA.log("isActivated", entry, GEA.translate[GEA.language]["CHECK_IF"], false)
     end
     
     local mainid = -1
@@ -838,16 +873,15 @@ if (not GEA) then
 
     elseif (typeID == "number") then
       local type = fibaro:getType(tonumber(id))
-      GEA.log("isActivate", entry, "type : " .. type, false)
+      GEA.log("isActivated", entry, "type : " .. type, false)
 
       if (GEA.match(type, "door_sensor|water_sensor|motion_sensor|com.fibaro.FGMS001|com.fibaro.doorSensor|com.fibaro.waterSensor|com.fibaro.motionSensor")) then
         result = tonumber(fibaro:getValue(tonumber(id), "value")) >= 1
+
         if not result and (GEA.source["type"] == "autostart") and (fibaro:getValue(tonumber(id), "lastBreached")) ~= "" then
           result = ((os.time() - tonumber(fibaro:getValue(tonumber(id), "lastBreached"))) < GEA.checkEvery)
-        else
-          if not result and (GEA.source["type"] == "autostart") and (fibaro:getModificationTime(tonumber(id), "value")) then
-            result  = ((os.time() - tonumber(fibaro:getModificationTime(tonumber(id), "value"))) < GEA.checkEvery)
-          end
+        elseif not result and (GEA.source["type"] == "autostart") and (fibaro:getModificationTime(tonumber(id), "value")) then
+          result  = ((os.time() - tonumber(fibaro:getModificationTime(tonumber(id), "value"))) < GEA.checkEvery)
         end
 
       elseif (GEA.match(type, "dimmable_light|binary_light|rgb_driver|com.fibaro.FGRGBW441M|com.fibaro.multilevelSwitch|com.fibaro.binarySwitch")) then
@@ -871,218 +905,225 @@ if (not GEA) then
         result = tonumber(fibaro:getValue(tonumber(id), "value")) == 1
       end
       
-      mainid = tonumber(id)
+      mainid                        = tonumber(id)
       master[GEA.keys["VALUE"]][nb] = fibaro:getValue(tonumber(id), "value")
 
-    elseif (typeID == "table" and string.lower(id[1]) == "global" and #id > 2) then
-      GEA.log("isActivate", entry, "type : global variable", false)
-      result = GEA.match(fibaro:getGlobalValue(id[2]), id[3])
-      master[GEA.keys["VALUE"]][nb] = fibaro:getGlobalValue(id[2])
+    elseif (typeID == "table") then
+      local lowerValue = string.lower(id[1])
 
-    elseif (typeID == "table" and string.lower(id[1]) == "global+" and #id > 2) then
-      GEA.log("isActivate", entry, "type : Global+", false)
-      result = tonumber(fibaro:getGlobalValue(id[2])) > tonumber(id[3])
-      --mainid = tonumber(id[2])
-       master[GEA.keys["VALUE"]][nb] = fibaro:getGlobalValue(id[2]) 
+      if(lowerValue == "global" and #id > 2) then
+        GEA.log("isActivated", entry, "type : global variable", false)
+        result = GEA.match(fibaro:getGlobalValue(id[2]), id[3])
+        master[GEA.keys["VALUE"]][nb] = fibaro:getGlobalValue(id[2])
 
-    elseif (typeID == "table" and string.lower(id[1]) == "global-" and #id > 2) then
-      GEA.log("isActivate", entry, "type : Global-", false)
-      result = tonumber(fibaro:getGlobalValue(id[2])) < tonumber(id[3])
-      --mainid = tonumber(id[2])
-      master[GEA.keys["VALUE"]][nb] = fibaro:getGlobalValue(id[2]) 
+      elseif (lowerValue == "global+" and #id > 2) then
+        GEA.log("isActivated", entry, "type : Global+", false)
+        result = tonumber(fibaro:getGlobalValue(id[2])) > tonumber(id[3])
+        --mainid = tonumber(id[2])
+        master[GEA.keys["VALUE"]][nb] = fibaro:getGlobalValue(id[2]) 
 
-    elseif (typeID == "table" and string.lower(id[1]) == "global!" and #id > 2) then
-      GEA.log("isActivate", entry, "type : Global!", false)
-      result = not GEA.match(fibaro:getGlobalValue(id[2]), id[3])
-      --mainid = tonumber(id[2])
-      master[GEA.keys["VALUE"]][nb] = fibaro:getGlobalValue(id[2])
+      elseif (lowerValue == "global-" and #id > 2) then
+        GEA.log("isActivated", entry, "type : Global-", false)
+        result = tonumber(fibaro:getGlobalValue(id[2])) < tonumber(id[3])
+        --mainid = tonumber(id[2])
+        master[GEA.keys["VALUE"]][nb] = fibaro:getGlobalValue(id[2]) 
 
-    elseif (typeID == "table" and string.lower(id[1]) == "slider" and #id > 3) then
-      GEA.log("isActivate", entry, "type : Slider", false)
-      result = tonumber(fibaro:getValue(id[2], "ui." .. id[3] .. ".value")) == tonumber(id[4])
-      master[GEA.keys["VALUE"]][nb] = fibaro:getValue(id[2], "ui." .. id[3] .. ".value")
+      elseif (lowerValue == "global!" and #id > 2) then
+        GEA.log("isActivated", entry, "type : Global!", false)
+        result = not GEA.match(fibaro:getGlobalValue(id[2]), id[3])
+        --mainid = tonumber(id[2])
+        master[GEA.keys["VALUE"]][nb] = fibaro:getGlobalValue(id[2])
 
-    elseif (typeID == "table" and string.lower(id[1]) == "slider-" and #id > 3) then
-      GEA.log("isActivate", entry, "type : Slider-", false)
-      result = tonumber(fibaro:getValue(id[2], "ui." .. id[3] .. ".value")) < tonumber(id[4])
-      master[GEA.keys["VALUE"]][nb] = fibaro:getValue(id[2], "ui." .. id[3] .. ".value")
+      elseif (lowerValue == "slider" and #id > 3) then
+        GEA.log("isActivated", entry, "type : Slider", false)
+        result = tonumber(fibaro:getValue(id[2], "ui." .. id[3] .. ".value")) == tonumber(id[4])
+        master[GEA.keys["VALUE"]][nb] = fibaro:getValue(id[2], "ui." .. id[3] .. ".value")
 
-    elseif (typeID == "table" and string.lower(id[1]) == "slider!" and #id > 3) then
-      GEA.log("isActivate", entry, "type : Slider!", false)
-      result = tonumber(fibaro:getValue(id[2], "ui." .. id[3] .. ".value")) ~= tonumber(id[4])
-      master[GEA.keys["VALUE"]][nb] = fibaro:getValue(id[2], "ui." .. id[3] .. ".value") 
+      elseif (lowerValue == "slider-" and #id > 3) then
+        GEA.log("isActivated", entry, "type : Slider-", false)
+        result = tonumber(fibaro:getValue(id[2], "ui." .. id[3] .. ".value")) < tonumber(id[4])
+        master[GEA.keys["VALUE"]][nb] = fibaro:getValue(id[2], "ui." .. id[3] .. ".value")
 
-    elseif (typeID == "table" and string.lower(id[1]) == "slider+" and #id > 3) then
-      GEA.log("isActivate", entry, "type : Slider+", false)
-      result = tonumber(fibaro:getValue(id[2], "ui." .. id[3] .. ".value")) > tonumber(id[4])
-      --mainid = tonumber(id[2])
-      master[GEA.keys["VALUE"]][nb] = fibaro:getValue(id[2], "ui." .. id[3] .. ".value")
+      elseif (lowerValue == "slider!" and #id > 3) then
+        GEA.log("isActivated", entry, "type : Slider!", false)
+        result = tonumber(fibaro:getValue(id[2], "ui." .. id[3] .. ".value")) ~= tonumber(id[4])
+        master[GEA.keys["VALUE"]][nb] = fibaro:getValue(id[2], "ui." .. id[3] .. ".value") 
 
-    elseif (typeID == "table" and string.lower(id[1]) == "label" and #id > 3) then
-      GEA.log("isActivate", entry, "type : Label", false)
-      result = GEA.match(fibaro:getValue(id[2], "ui." .. id[3] .. ".value"), id[4])
-      --mainid = tonumber(id[2])
-      master[GEA.keys["VALUE"]][nb] = fibaro:getValue(id[2], "ui." .. id[3] .. ".value") 
+      elseif (lowerValue == "slider+" and #id > 3) then
+        GEA.log("isActivated", entry, "type : Slider+", false)
+        result = tonumber(fibaro:getValue(id[2], "ui." .. id[3] .. ".value")) > tonumber(id[4])
+        --mainid = tonumber(id[2])
+        master[GEA.keys["VALUE"]][nb] = fibaro:getValue(id[2], "ui." .. id[3] .. ".value")
 
-    elseif (typeID == "table" and string.lower(id[1]) == "label!" and #id > 3) then
-      GEA.log("isActivate", entry, "type : Label!", false)
-      result = not GEA.match(fibaro:getValue(id[2], "ui." .. id[3] .. ".value"), id[4])
-      --mainid = tonumber(id[2])
-      master[GEA.keys["VALUE"]][nb] = fibaro:getValue(id[2], "ui." .. id[3] .. ".value") 
+      elseif (lowerValue == "label" and #id > 3) then
+        GEA.log("isActivated", entry, "type : Label", false)
+        result = GEA.match(fibaro:getValue(id[2], "ui." .. id[3] .. ".value"), id[4])
+        --mainid = tonumber(id[2])
+        master[GEA.keys["VALUE"]][nb] = fibaro:getValue(id[2], "ui." .. id[3] .. ".value") 
 
-    elseif (typeID == "table" and string.lower(id[1]) == "property" and #id > 3) then
-      GEA.log("isActivate", entry, "type : Property", false)
-      result = GEA.match(fibaro:getValue(id[2], id[3]), id[4])
-      --mainid = tonumber(id[2])
-      master[GEA.keys["VALUE"]][nb] = fibaro:getValue(id[2], id[3])  
+      elseif (lowerValue == "label!" and #id > 3) then
+        GEA.log("isActivated", entry, "type : Label!", false)
+        result = not GEA.match(fibaro:getValue(id[2], "ui." .. id[3] .. ".value"), id[4])
+        --mainid = tonumber(id[2])
+        master[GEA.keys["VALUE"]][nb] = fibaro:getValue(id[2], "ui." .. id[3] .. ".value") 
 
-    elseif (typeID == "table" and string.lower(id[1]) == "property!" and #id > 3) then
-      GEA.log("isActivate", entry, "type : Property", false)
-      result = not GEA.match(fibaro:getValue(id[2], id[3]), id[4])
-      --mainid = tonumber(id[2])
-      master[GEA.keys["VALUE"]][nb] = fibaro:getValue(id[2], id[3]) 
+      elseif (lowerValue == "property" and #id > 3) then
+        GEA.log("isActivated", entry, "type : Property", false)
+        result = GEA.match(fibaro:getValue(id[2], id[3]), id[4])
+        --mainid = tonumber(id[2])
+        master[GEA.keys["VALUE"]][nb] = fibaro:getValue(id[2], id[3])  
 
-    elseif (typeID == "table" and string.lower(id[1]) == "batteries" and #id > 1) then
-      GEA.log("isActivate", entry, "type : batteries", false)
-      local msg = ""
+      elseif (lowerValue == "property!" and #id > 3) then
+        GEA.log("isActivated", entry, "type : Property", false)
+        result = not GEA.match(fibaro:getValue(id[2], id[3]), id[4])
+        --mainid = tonumber(id[2])
+        master[GEA.keys["VALUE"]][nb] = fibaro:getValue(id[2], id[3]) 
 
-      for i = 1, 1000 do
-        local batt = fibaro:getValue(i, 'batteryLevel')
-        if (type(batt) ~= nil and (tonumber(batt) ~= nil) and (tonumber(batt) <= tonumber(id[2])) or (tonumber(batt) == 255)) then 
-          GEA.log("isActivate", entry, "checking : batteries " .. fibaro:getName(i), false)
-          if (not string.find(fibaro:getName(i), "Zwave_")) then
-            msg = msg .. GEA.translate[GEA.language]["BATTERIE"] .. " [" .. fibaro:getName(i) .. "] " .. batt .. "%\n" 
-            result = true 
+      elseif (lowerValue == "batteries" and #id > 1) then
+        GEA.log("isActivated", entry, "type : batteries", false)
+        local msg = ""
+
+        for i = 1, 1000 do
+          local batt = fibaro:getValue(i, 'batteryLevel')
+
+          if (type(batt) ~= nil and (tonumber(batt) ~= nil) and (tonumber(batt) <= tonumber(id[2])) or (tonumber(batt) == 255)) then 
+            GEA.log("isActivated", entry, "checking : batteries " .. fibaro:getName(i), false)
+
+            if (not string.find(fibaro:getName(i), "Zwave_")) then
+              msg    = msg .. GEA.translate[GEA.language]["BATTERIE"] .. " [" .. fibaro:getName(i) .. "] " .. batt .. "%\n" 
+              result = true 
+            end
           end
         end
-      end
 
-      master[GEA.keys["VALUE"]][nb] = id[2] 
-      entry[GEA.keys["MESSAGE"]]    = msg 
+        master[GEA.keys["VALUE"]][nb] = id[2] 
+        entry[GEA.keys["MESSAGE"]]    = msg 
 
-    elseif (typeID == "table" and (string.lower(id[1]) == "sensor" or string.lower(id[1]) == "power") and #id > 2) then
-      GEA.log("isActivate", entry, "type : Sensor", false)
-      result                        = tonumber(fibaro:getValue(tonumber(id[2]), GEA.power)) ==tonumber(id[3])
-      mainid                        = tonumber(id[2])
-      master[GEA.keys["VALUE"]][nb] = fibaro:getValue(tonumber(id[2]), GEA.power)
+      elseif ((lowerValue == "sensor" or lowerValue == "power") and #id > 2) then
+        GEA.log("isActivated", entry, "type : Sensor", false)
+        result                        = tonumber(fibaro:getValue(tonumber(id[2]), GEA.power)) == tonumber(id[3])
+        mainid                        = tonumber(id[2])
+        master[GEA.keys["VALUE"]][nb] = fibaro:getValue(tonumber(id[2]), GEA.power)
 
-    elseif (typeID == "table" and(string.lower(id[1]) == "sensor+" or string.lower(id[1]) == "power+") and #id > 2) then
-      GEA.log("isActivate", entry, "type : Sensor+", false)
-      result                        = tonumber(fibaro:getValue(tonumber(id[2]), GEA.power)) > tonumber(id[3])
-      mainid                        = tonumber(id[2])
-      master[GEA.keys["VALUE"]][nb] = fibaro:getValue(tonumber(id[2]), GEA.power) 
+      elseif ((lowerValue == "sensor+" or lowerValue == "power+") and #id > 2) then
+        GEA.log("isActivated", entry, "type : Sensor+", false)
+        result                        = tonumber(fibaro:getValue(tonumber(id[2]), GEA.power)) > tonumber(id[3])
+        mainid                        = tonumber(id[2])
+        master[GEA.keys["VALUE"]][nb] = fibaro:getValue(tonumber(id[2]), GEA.power) 
 
-    elseif (typeID == "table" and (string.lower(id[1]) == "sensor-" or string.lower(id[1]) == "power-") and #id > 2) then
-      GEA.log("isActivate", entry, "type : Sensor-", false)
-      result                        = tonumber(fibaro:getValue(tonumber(id[2]), GEA.power)) < tonumber(id[3])
-      mainid                        = tonumber(id[2])
-      master[GEA.keys["VALUE"]][nb] = fibaro:getValue(tonumber(id[2]), GEA.power)
+      elseif ((lowerValue == "sensor-" or lowerValue == "power-") and #id > 2) then
+        GEA.log("isActivated", entry, "type : Sensor-", false)
+        result                        = tonumber(fibaro:getValue(tonumber(id[2]), GEA.power)) < tonumber(id[3])
+        mainid                        = tonumber(id[2])
+        master[GEA.keys["VALUE"]][nb] = fibaro:getValue(tonumber(id[2]), GEA.power)
 
-    elseif (typeID == "table" and (string.lower(id[1]) == "sensor!" or string.lower(id[1]) == "power!") and #id > 2) then
-      GEA.log("isActivate", entry, "type : Sensor!", false)
-      result                        = tonumber(fibaro:getValue(tonumber(id[2]), GEA.power)) ~= tonumber(id[3])
-      mainid                        = tonumber(id[2])
-      master[GEA.keys["VALUE"]][nb] = fibaro:getValue(tonumber(id[2]), GEA.power) 
+      elseif ((lowerValue == "sensor!" or lowerValue == "power!") and #id > 2) then
+        GEA.log("isActivated", entry, "type : Sensor!", false)
+        result                        = tonumber(fibaro:getValue(tonumber(id[2]), GEA.power)) ~= tonumber(id[3])
+        mainid                        = tonumber(id[2])
+        master[GEA.keys["VALUE"]][nb] = fibaro:getValue(tonumber(id[2]), GEA.power) 
 
-    elseif (typeID == "table" and string.lower(id[1]) == "battery" and #id > 2) then
-      GEA.log("isActivate", entry, "type : Battery", false)
-      result = false
-      local batt = fibaro:getValue(tonumber(id[2]), 'batteryLevel')
+      elseif (lowerValue == "battery" and #id > 2) then
+        GEA.log("isActivated", entry, "type : Battery", false)
+        result     = false
+        local batt = fibaro:getValue(tonumber(id[2]), 'batteryLevel')
 
-      if (type(batt) ~= nil and tonumber(batt) <= tonumber(id[3]) or tonumber(batt) == 255) then 
-        result = true 
-        master[GEA.keys["VALUE"]][nb] = batt
-      end
+        if (type(batt) ~= nil and tonumber(batt) <= tonumber(id[3]) or tonumber(batt) == 255) then 
+          result = true 
+          master[GEA.keys["VALUE"]][nb] = batt
+        end
 
-      mainid = tonumber(id[2])
+        mainid = tonumber(id[2])
 
-    elseif (typeID == "table" and string.lower(id[1]) == "value" and #id > 2) then
-      GEA.log("isActivate", entry, "type : Value", false)
-      result                        = tonumber(fibaro:getValue(tonumber(id[2]), "value")) == tonumber(id[3])
-      mainid                        = tonumber(id[2])
-      master[GEA.keys["VALUE"]][nb] = fibaro:getValue(tonumber(id[2]), "value") 
+      elseif (lowerValue == "value" and #id > 2) then
+        GEA.log("isActivated", entry, "type : Value", false)
+        result                        = tonumber(fibaro:getValue(tonumber(id[2]), "value")) == tonumber(id[3])
+        mainid                        = tonumber(id[2])
+        master[GEA.keys["VALUE"]][nb] = fibaro:getValue(tonumber(id[2]), "value") 
 
-    elseif (typeID == "table" and string.lower(id[1]) == "value+" and #id > 2) then
-      GEA.log("isActivate", entry, "type : Value+", false)
-      result                        = tonumber(fibaro:getValue(tonumber(id[2]), "value")) > tonumber(id[3])
-      mainid                        = tonumber(id[2])
-      master[GEA.keys["VALUE"]][nb] = fibaro:getValue(tonumber(id[2]), "value") 
+      elseif (lowerValue == "value+" and #id > 2) then
+        GEA.log("isActivated", entry, "type : Value+", false)
+        result                        = tonumber(fibaro:getValue(tonumber(id[2]), "value")) > tonumber(id[3])
+        mainid                        = tonumber(id[2])
+        master[GEA.keys["VALUE"]][nb] = fibaro:getValue(tonumber(id[2]), "value") 
 
-    elseif (typeID == "table" and string.lower(id[1]) == "value-" and #id > 2) then
-      GEA.log("isActivate", entry, "type : Value-", false)
-      result                        = tonumber(fibaro:getValue(tonumber(id[2]), "value")) < tonumber(id[3])
-      mainid                        = tonumber(id[2])
-      master[GEA.keys["VALUE"]][nb] = fibaro:getValue(tonumber(id[2]), "value") 
+      elseif (lowerValue == "value-" and #id > 2) then
+        GEA.log("isActivated", entry, "type : Value-", false)
+        result                        = tonumber(fibaro:getValue(tonumber(id[2]), "value")) < tonumber(id[3])
+        mainid                        = tonumber(id[2])
+        master[GEA.keys["VALUE"]][nb] = fibaro:getValue(tonumber(id[2]), "value") 
 
-    elseif (typeID == "table" and string.lower(id[1]) == "value!" and #id > 2) then
-      GEA.log("isActivate", entry, "type : Value!", false)
-      result                        = tonumber(fibaro:getValue(tonumber(id[2]), "value")) ~= tonumber(id[3])
-      mainid                        = tonumber(id[2])
-      master[GEA.keys["VALUE"]][nb] = fibaro:getValue(tonumber(id[2]), "value")
+      elseif (lowerValue == "value!" and #id > 2) then
+        GEA.log("isActivated", entry, "type : Value!", false)
+        result                        = tonumber(fibaro:getValue(tonumber(id[2]), "value")) ~= tonumber(id[3])
+        mainid                        = tonumber(id[2])
+        master[GEA.keys["VALUE"]][nb] = fibaro:getValue(tonumber(id[2]), "value")
 
-    elseif (typeID == "table" and string.lower(id[1]) == "dead" and #id > 1) then
-      GEA.log("isActivate", entry, "type : isDead", false)
-      result                        = tonumber(fibaro:getValue(tonumber(id[2]), "dead")) >= 1  
-      master[GEA.keys["VALUE"]][nb] = fibaro:getValue(tonumber(id[2]), "dead")
+      elseif (lowerValue == "dead" and #id > 1) then
+        GEA.log("isActivated", entry, "type : isDead", false)
+        result                        = tonumber(fibaro:getValue(tonumber(id[2]), "dead")) >= 1  
+        master[GEA.keys["VALUE"]][nb] = fibaro:getValue(tonumber(id[2]), "dead")
 
-    elseif (typeID == "table" and string.lower(id[1]) == "weather" and #id > 1) then
-      GEA.log("isActivate", entry, "type : weather", false)
-      result = GEA.match(fibaro:getValue(3, "WeatherConditionConverted"), id[2])
-      master[GEA.keys["VALUE"]][nb] = fibaro:getValue(3, "WeatherConditionConverted") 
+      elseif (lowerValue == "weather" and #id > 1) then
+        GEA.log("isActivated", entry, "type : weather", false)
+        result = GEA.match(fibaro:getValue(3, "WeatherConditionConverted"), id[2])
+        master[GEA.keys["VALUE"]][nb] = fibaro:getValue(3, "WeatherConditionConverted") 
 
-    elseif (typeID == "table" and string.lower(id[1]) == "function" and #id > 1) then
-      GEA.log("isActivate", entry, "type : Function", false)
-      local status, err, value = pcall(id[2])
+      elseif (lowerValue == "function" and #id > 1) then
+        GEA.log("isActivated", entry, "type : Function", false)
+        local status, err, value = pcall(id[2])
 
-      if (status) then
-        result = err
-        if (value) then 
-          master[GEA.keys["VALUE"]][nb] = value 
-        end 
-      else
-        result = false
-      end
+        if (status) then
+          result = err
 
-    elseif (typeID == "table" and string.lower(id[1]) == "group" and #id > 1) then
-      GEA.log("isActivate", entry, "type : Group", false)
+          if (value) then 
+            master[GEA.keys["VALUE"]][nb] = value 
+          end 
+        else
+          result = false
+        end
 
-      for i = 1, #GEA.todo do
-        if (GEA.todo[i][GEA.keys["GROUPS"]][tonumber(id[2])]) then
-          if (not GEA.todo[i][GEA.keys["OK"]]) then
-            result = false
+      elseif (lowerValue == "group" and #id > 1) then
+        GEA.log("isActivated", entry, "type : Group", false)
+
+        for i = 1, #GEA.todo do
+          if (GEA.todo[i][GEA.keys["GROUPS"]][tonumber(id[2])]) then
+            if (not GEA.todo[i][GEA.keys["OK"]]) then
+              result = false
+            end
           end
         end
-      end
 
-      master[GEA.keys["VALUE"]][nb] = fibaro:getValue(tonumber(id[2]), "")
+        master[GEA.keys["VALUE"]][nb] = fibaro:getValue(tonumber(id[2]), "")
 
-    elseif (typeID == "table" and string.lower(id[1]) == "alarm") then
-      GEA.log("isActivate", entry, "type : alarm", false)
-      local time = fibaro:getValue(tonumber(id[2]), "ui.lblAlarme.value")
-      if (not (type(time) == "nil" or time == "" or time == "--:--")) then
-        result = GEA.checkTime(entry, GEA.flatTime(time).."-"..GEA.flatTime(time))
+      elseif (lowerValue == "alarm") then
+        GEA.log("isActivated", entry, "type : alarm", false)
+        local time = fibaro:getValue(tonumber(id[2]), "ui.lblAlarme.value")
 
-        if (result) then
-          local jours = fibaro:getValue(tonumber(id[2]), "ui.lblJours.value")
-          local days  = ""
+        if (not (type(time) == "nil" or time == "" or time == "--:--")) then
+          result = GEA.checkTime(entry, GEA.flatTime(time) .. "-" .. GEA.flatTime(time))
 
-          if (string.find(jours, "Lu") or string.find(jours, "Mo")) then days = days .. "Monday" end
-          if (string.find(jours, "Ma") or string.find(jours, "Tu")) then days = days .. "Tuesday" end
-          if (string.find(jours, "Me") or string.find(jours, "We")) then days = days .. "Wednesday" end
-          if (string.find(jours, "Je") or string.find(jours, "Th")) then days = days .. "Thursday" end
-          if (string.find(jours, "Ve") or string.find(jours, "Fr")) then days = days .. "Friday" end
-          if (string.find(jours, "Sa") or string.find(jours, "Sa")) then days = days .. "Saturday" end
-          if (string.find(jours, "Di") or string.find(jours, "Su")) then days = days .. "Sunday" end
-          result = GEA.checkDay(days)
+          if (result) then
+            local jours = fibaro:getValue(tonumber(id[2]), "ui.lblJours.value")
+            local days  = ""
 
+            if (string.find(jours, "Lu") or string.find(jours, "Mo")) then days = days .. "Monday" end
+            if (string.find(jours, "Ma") or string.find(jours, "Tu")) then days = days .. "Tuesday" end
+            if (string.find(jours, "Me") or string.find(jours, "We")) then days = days .. "Wednesday" end
+            if (string.find(jours, "Je") or string.find(jours, "Th")) then days = days .. "Thursday" end
+            if (string.find(jours, "Ve") or string.find(jours, "Fr")) then days = days .. "Friday" end
+            if (string.find(jours, "Sa") or string.find(jours, "Sa")) then days = days .. "Saturday" end
+            if (string.find(jours, "Di") or string.find(jours, "Su")) then days = days .. "Sunday" end
+            result = GEA.checkDay(days)
+          end
+
+          master[GEA.keys["VALUE"]][nb] = time
+        else
+          result = false
         end
-        master[GEA.keys["VALUE"]][nb] = time
-      else
-        result = false
       end
-
     else
-      -- autre a venir
+      -- autre à venir
     end
     
     if (nb == 1) then
@@ -1094,17 +1135,20 @@ if (not GEA) then
 
       if (mainid > -1 and type(entry[GEA.keys["PARAMS"]]) == "table") then
         for i = 1, #entry[GEA.keys["PARAMS"]] do
-          if (string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "armed") then
+          local iterator = entry[GEA.keys["PARAMS"]][i]
+
+          if (string.lower(iterator[1]) == "armed") then
             result = result and tonumber(fibaro:getValue(mainid, "armed")) > 0
 
-            if (#entry[GEA.keys["PARAMS"]][i] > 1) then
-              result = result and tonumber(fibaro:getValue(entry[GEA.keys["PARAMS"]][i][2], "armed")) > 0
+            if (#iterator > 1) then
+              result = result and tonumber(fibaro:getValue(iterator[2], "armed")) > 0
             end
 
-          elseif (string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "disarmed") then
+          elseif (string.lower(iterator[1]) == "disarmed") then
             result = result and tonumber(fibaro:getValue(mainid, "armed")) == 0
-            if (#entry[GEA.keys["PARAMS"]][i] > 1) then
-              result = result and tonumber(fibaro:getValue(entry[GEA.keys["PARAMS"]][i][2], "armed")) == 0
+
+            if (#iterator > 1) then
+              result = result and tonumber(fibaro:getValue(iterator[2], "armed")) == 0
             end
           end
         end
@@ -1112,14 +1156,16 @@ if (not GEA) then
 
       if (result) then
         for i = 1, #entry[GEA.keys["PARAMS"]] do
-          if (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "if") then
+          local iterator = entry[GEA.keys["PARAMS"]][i]
+
+          if (type(iterator) == "table" and string.lower(iterator[1]) == "if") then
             local ok = true
 
-            for j = 1, #entry[GEA.keys["PARAMS"]][i][2] do
-              if (type(entry[GEA.keys["PARAMS"]][i][2]) == "table") then
-                if ( not GEA.isActivate({entry[GEA.keys["PARAMS"]][i][2][j]}, j+1, entry) ) then
+            for j = 1, #iterator[2] do
+              if (type(iterator[2]) == "table") then
+                if ( not GEA.isActivated({iterator[2][j]}, j+1, entry) ) then
                   ok = false
-                  GEA.log("!CANCEL! isActivate", entry, GEA.translate[GEA.language]["CHECK_IF_FAILED"], false, "yellow")
+                  GEA.log("!CANCEL! isActivated", entry, GEA.translate[GEA.language]["CHECK_IF_FAILED"], false, "yellow")
                 end
               else
                 GEA.log(GEA.translate[GEA.language]["ERROR"], entry, GEA.translate[GEA.language]["ERROR_IF"], true, "red")
@@ -1133,9 +1179,9 @@ if (not GEA) then
     end
 
     if (result) then 
-      GEA.log("isActivate", entry, GEA.translate[GEA.language]["ACTIVATED"], false)
+      GEA.log("isActivated", entry, GEA.translate[GEA.language]["ACTIVATED"], false)
     else
-      GEA.log("!CANCEL! isActivate", entry, GEA.translate[GEA.language]["DESACTIVATED"], false, "yellow")
+      GEA.log("!CANCEL! isActivated", entry, GEA.translate[GEA.language]["DESACTIVATED"], false, "yellow")
     end
     return result
   end
@@ -1206,7 +1252,7 @@ if (not GEA) then
     
     msg = string.gsub(msg, "#duration#", durees[1])
     msg = string.gsub(msg, "#durationfull#", durees[2])
-    msg = string.gsub(msg, "#runs#", entry[GEA.keys["TOTALRUNS"]] )
+    msg = string.gsub(msg, "#runs#", entry[GEA.keys["TOTALRUNS"]])
     
     return msg
   end
@@ -1235,7 +1281,7 @@ if (not GEA) then
     end
 
     if (nMins > 0) then 
-      duree = duree .. nMins .."m " 
+      duree = duree .. nMins .. "m " 
 
       if (nHours > 0) then 
         dureefull = dureefull .. " " 
@@ -1283,229 +1329,235 @@ if (not GEA) then
     if (type(entry[GEA.keys["PARAMS"]]) == "table") then
     
       for i = 1, #entry[GEA.keys["PARAMS"]] do
-        if (type(entry[GEA.keys["PARAMS"]][i]) == "table" and (string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "turnoff" or string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "turnon" or string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "switch")) then 
-          local id = GEA.getId(entry, entry[GEA.keys["PARAMS"]][i])
+        local paramsIterator = entry[GEA.keys["PARAMS"]][i]
 
-          if (id > 0) then 
-            local etat = fibaro:getValue(tonumber(id), "value")
-            local typef = fibaro:getType(tonumber(id))
+        if (type(paramsIterator) == "table") then
+          local lowerValue = string.lower(paramsIterator[1])
 
-            if (GEA.match(typef, "rgb_driver") and  ((tonumber(fibaro:getValue(tonumber(id), "value")) > 0 ) or tonumber(fibaro:getValue(tonumber(id), "currentProgramID")) > 0)) then
-              -- verison 3.x
-              etat = 1
-            elseif (GEA.match(typef, "com.fibaro.FGRGBW441M")) then
-              if (fibaro:getValue(tonumber(id), "color") ~= "0,0,0,0" or tonumber(fibaro:getValue(tonumber(id), "currentProgramID")) > 0) then
-              -- verison 4.x
+          if ((lowerValue == "turnoff" or lowerValue == "turnon" or lowerValue == "switch")) then 
+            local id = GEA.getId(entry, paramsIterator)
+
+            if (id > 0) then 
+              local etat = fibaro:getValue(tonumber(id), "value")
+              local typef = fibaro:getType(tonumber(id))
+
+              if (GEA.match(typef, "rgb_driver") and ((tonumber(fibaro:getValue(tonumber(id), "value")) > 0 ) or tonumber(fibaro:getValue(tonumber(id), "currentProgramID")) > 0)) then
+                -- verison 3.x
                 etat = 1
+              elseif (GEA.match(typef, "com.fibaro.FGRGBW441M")) then
+                if (fibaro:getValue(tonumber(id), "color") ~= "0,0,0,0" or tonumber(fibaro:getValue(tonumber(id), "currentProgramID")) > 0) then
+                -- verison 4.x
+                  etat = 1
+                end
+              end 
+
+              if (tonumber(etat) >= 1 and lowerValue == "turnoff") or (tonumber(etat) == 0 and lowerValue == "turnon") then 
+                fibaro:call(tonumber(id), paramsIterator[1])
+              elseif (lowerValue == "switch") then 
+                local mode = "turnOff"
+
+                if (tonumber(etat) == 0) then
+                  mode = "turnOn"
+                end
+
+                fibaro:call(tonumber(id), mode)
               end
-            end 
 
-            if (tonumber(etat) >= 1 and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "turnoff") or (tonumber(etat) == 0 and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "turnon") then 
-              fibaro:call(tonumber(id), entry[GEA.keys["PARAMS"]][i][1])
-            elseif (string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "switch") then 
-              local mode = "turnOff"
-
-              if (tonumber(etat) == 0) then
-                mode = "turnOn"
-              end
-
-              fibaro:call(tonumber(id), mode)
-            end
-
-            GEA.log("sendActions", entry, "!ACTION! : " .. entry[GEA.keys["PARAMS"]][i][1] , true)
-          end
-        end
-
-        if (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "global" and #entry[GEA.keys["PARAMS"]][i] > 2) then
-          local value = string.match(entry[GEA.keys["PARAMS"]][i][3], "(%d+)")
-
-          if (GEA.match(entry[GEA.keys["PARAMS"]][i][3], "inc%+")) then
-            local number = tonumber(fibaro:getGlobalValue(entry[GEA.keys["PARAMS"]][i][2]))
-
-            if (type(value) ~= "nil") then 
-              fibaro:setGlobal(entry[GEA.keys["PARAMS"]][i][2], number + value) 
-            else 
-              fibaro:setGlobal(entry[GEA.keys["PARAMS"]][i][2], number + 1) 
-            end
-          elseif (GEA.match(entry[GEA.keys["PARAMS"]][i][3], "dec%-")) then
-            local number = tonumber(fibaro:getGlobalValue(entry[GEA.keys["PARAMS"]][i][2]))
-
-            if (type(value) ~= "nil") then 
-              fibaro:setGlobal(entry[GEA.keys["PARAMS"]][i][2], number - value) 
-            else 
-              fibaro:setGlobal(entry[GEA.keys["PARAMS"]][i][2], number - 1) 
-            end
-          else
-            fibaro:setGlobal(entry[GEA.keys["PARAMS"]][i][2], GEA.getMessage(entry,entry[GEA.keys["PARAMS"]][i][3]))
-          end
-
-          GEA.log("sendActions", entry, "!ACTION! : setGlobal " .. entry[GEA.keys["PARAMS"]][i][2] ..",".. GEA.getMessage(entry, entry[GEA.keys["PARAMS"]][i][3]) , true)
-
-        elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "portable" and #entry[GEA.keys["PARAMS"]][i] > 1) then
-          fibaro:call(tonumber(entry[GEA.keys["PARAMS"]][i][2]), "sendPush", GEA.getMessage(entry, nil))
-          GEA.log("sendActions", entry, "!ACTION! : pushed to " .. entry[GEA.keys["PARAMS"]][i][2], true)
-          pushed = true
-
-        elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "email" and #entry[GEA.keys["PARAMS"]][i] > 1) then
-          local sujet = "GEA Notification"
-
-          if (#entry[GEA.keys["PARAMS"]][i] > 2) then
-            sujet = entry[GEA.keys["PARAMS"]][i][3]
-          end
-
-          fibaro:call(tonumber(entry[GEA.keys["PARAMS"]][i][2]), "sendEmail", GEA.getMessage(entry, sujet), GEA.getMessage(entry, nil))
-          GEA.log("sendActions", entry, "!ACTION! : email to " .. entry[GEA.keys["PARAMS"]][i][2], true)
-
-        elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "picture" and #entry[GEA.keys["PARAMS"]][i] > 2) then
-          local destinataire = tonumber(entry[GEA.keys["PARAMS"]][i][3])
-          local camera       = tonumber(entry[GEA.keys["PARAMS"]][i][2])
-
-          fibaro:call(camera, "sendPhotoToUser", destinataire)
-          GEA.log("sendActions", entry, "!ACTION! : email picture from camera " .. camera .. " to " .. destinataire, true)
-
-        elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "scenario" and #entry[GEA.keys["PARAMS"]][i] > 1) then
-          fibaro:startScene(entry[GEA.keys["PARAMS"]][i][2])
-          GEA.log("sendActions", entry, "!ACTION! : Scene " .. entry[GEA.keys["PARAMS"]][i][2], true)
-
-        elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "stopscenario" and #entry[GEA.keys["PARAMS"]][i] > 1) then
-          if (fibaro:countScenes(entry[GEA.keys["PARAMS"]][i][2])) then
-              fibaro:killScene(entry[GEA.keys["PARAMS"]][i][2])
-              GEA.log("sendActions", entry, "!ACTION! : Stop Scene " .. entry[GEA.keys["PARAMS"]][i][2], true)
-          else
-              GEA.log("sendActions", entry, "!ACTION! : No Stop Scene " .. entry[GEA.keys["PARAMS"]][i][2], true)
-          end
-
-        elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "enablescenario" and #entry[GEA.keys["PARAMS"]][i] > 1) then
-          fibaro:setSceneEnabled(entry[GEA.keys["PARAMS"]][i][2], true)
-          GEA.log("sendActions", entry, "!ACTION! : Scene enabled " .. entry[GEA.keys["PARAMS"]][i][2], true)
-
-        elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "disablescenario" and #entry[GEA.keys["PARAMS"]][i] > 1) then
-          fibaro:setSceneEnabled(entry[GEA.keys["PARAMS"]][i][2], false)
-          GEA.log("sendActions", entry, "!ACTION! : Scene disabled " .. entry[GEA.keys["PARAMS"]][i][2], true)
-
-        elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "function") then
-          local status, err = pcall(entry[GEA.keys["PARAMS"]][i][2])
-
-          if (status) then
-            GEA.log("sendActions", entry, "!ACTION! : Function OK",  true)
-          else
-            GEA.log("sendActions", entry, "!ACTION! : Function " .. tostring(err or "Inconnu."), true)
-          end
-
-        elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "setarmed" and #entry[GEA.keys["PARAMS"]][i] > 1) then
-          fibaro:call(entry[GEA.keys["PARAMS"]][i][2], "setArmed", 1)
-          GEA.log("sendActions", entry, "!ACTION! : setArmed " .. entry[GEA.keys["PARAMS"]][i][2], true)
-
-        elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "setdisarmed" and #entry[GEA.keys["PARAMS"]][i] > 1) then
-          fibaro:call(entry[GEA.keys["PARAMS"]][i][2], "setArmed", 0)
-          GEA.log("sendActions", entry, "!ACTION! : setDisarmed " .. entry[GEA.keys["PARAMS"]][i][2], true)
-
-        elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "currenticon" and #entry[GEA.keys["PARAMS"]][i] > 2) then
-          fibaro:call(entry[GEA.keys["PARAMS"]][i][2], "setProperty", "currentIcon", tostring(entry[GEA.keys["PARAMS"]][i][3]))
-          GEA.log("sendActions", entry, "!ACTION! : CurrentIcon " .. entry[GEA.keys["PARAMS"]][i][2], true)
-
-        elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "copyglobal" and #entry[GEA.keys["PARAMS"]][i] > 2) then
-          fibaro:setGlobal(entry[GEA.keys["PARAMS"]][i][3], fibaro:getGlobalValue(entry[GEA.keys["PARAMS"]][i][2]))
-          GEA.log("sendActions", entry, "!ACTION! : CopyGlobal " .. entry[GEA.keys["PARAMS"]][i][2], true) 
-
-        elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "restarttask" and #entry[GEA.keys["PARAMS"]][i] > 1) then
-          GEA.addOrRemoveTask("R", entry[GEA.keys["PARAMS"]][i][2], true)
-          GEA.log("sendActions", entry, "!ACTION! : Restart " .. entry[GEA.keys["PARAMS"]][i][2], true)
-
-        elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "stoptask" and #entry[GEA.keys["PARAMS"]][i] > 1) then
-          GEA.addOrRemoveTask("S", entry[GEA.keys["PARAMS"]][i][2], true)
-          GEA.log("sendActions", entry, "!ACTION! : StopTask " .. entry[GEA.keys["PARAMS"]][i][2], true)
-
-        elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "wakeup" and #entry[GEA.keys["PARAMS"]][i] > 1) then
-          fibaro:wakeUpDeadDevice(entry[GEA.keys["PARAMS"]][i][2])
-          GEA.log("sendActions", entry, "!ACTION! : WakeUp " .. entry[GEA.keys["PARAMS"]][i][2], true)
-
-        elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "virtualdevice" and #entry[GEA.keys["PARAMS"]][i] > 2) then
-          fibaro:call(entry[GEA.keys["PARAMS"]][i][2], "pressButton", tostring(entry[GEA.keys["PARAMS"]][i][3]))
-          GEA.log("sendActions", entry, "!ACTION! : VirtualDevice " .. entry[GEA.keys["PARAMS"]][i][2] .. "," .. entry[GEA.keys["PARAMS"]][i][3], true)
-
-        elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "slider" and #entry[GEA.keys["PARAMS"]][i] > 3) then
-          fibaro:call(entry[GEA.keys["PARAMS"]][i][2], "setSlider", entry[GEA.keys["PARAMS"]][i][3], entry[GEA.keys["PARAMS"]][i][4])
-          GEA.log("sendActions", entry, "!ACTION! : Slider " .. entry[GEA.keys["PARAMS"]][i][2] .. "," .. entry[GEA.keys["PARAMS"]][i][3] .. "=" .. entry[GEA.keys["PARAMS"]][i][4], true)
-
-        elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "label" and #entry[GEA.keys["PARAMS"]][i] > 3) then
-          fibaro:call(entry[GEA.keys["PARAMS"]][i][2], "setProperty", "ui."..entry[GEA.keys["PARAMS"]][i][3] .. ".value", GEA.getMessage(entry, entry[GEA.keys["PARAMS"]][i][4]))
-          GEA.log("sendActions", entry, "!ACTION! : Label " .. entry[GEA.keys["PARAMS"]][i][2] .. "," .. entry[GEA.keys["PARAMS"]][i][3]  .. " = " ..  GEA.getMessage(entry, entry[GEA.keys["PARAMS"]][i][4]), true)
-
-        elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "rgb" and #entry[GEA.keys["PARAMS"]][i] > 5) then
-          -- added by Shyrka973
-          if (entry[GEA.keys["PARAMS"]][i][3] == -1 or entry[GEA.keys["PARAMS"]][i][4] == -1 or entry[GEA.keys["PARAMS"]][i][5] == -1 or entry[GEA.keys["PARAMS"]][i][6] == -1) then
-            if (entry[GEA.keys["PARAMS"]][i][3] ~= -1) then
-              fibaro:call(entry[GEA.keys["PARAMS"]][i][2], "setR", entry[GEA.keys["PARAMS"]][i][3])
-            end
-
-            if (entry[GEA.keys["PARAMS"]][i][4] ~= -1) then
-              fibaro:call(entry[GEA.keys["PARAMS"]][i][2], "setG", entry[GEA.keys["PARAMS"]][i][4])
-            end
-
-            if (entry[GEA.keys["PARAMS"]][i][5] ~= -1) then
-              fibaro:call(entry[GEA.keys["PARAMS"]][i][2], "setB", entry[GEA.keys["PARAMS"]][i][5])
-            end
-
-            if (entry[GEA.keys["PARAMS"]][i][6] ~= -1) then
-              fibaro:call(entry[GEA.keys["PARAMS"]][i][2], "setW", entry[GEA.keys["PARAMS"]][i][6])
-            end
-          else
-            fibaro:call(entry[GEA.keys["PARAMS"]][i][2], "setColor", entry[GEA.keys["PARAMS"]][i][3], entry[GEA.keys["PARAMS"]][i][4], entry[GEA.keys["PARAMS"]][i][5], entry[GEA.keys["PARAMS"]][i][6])
-          end
-
-          GEA.log("sendActions", entry, "!ACTION! : RGB " .. entry[GEA.keys["PARAMS"]][i][2] .. ", Color = " .. entry[GEA.keys["PARAMS"]][i][3]  .. "," .. entry[GEA.keys["PARAMS"]][i][4] .. "," .. entry[GEA.keys["PARAMS"]][i][5] .. "," .. entry[GEA.keys["PARAMS"]][i][6])
-
-        elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "program" and #entry[GEA.keys["PARAMS"]][i] > 2) then
-          if (tonumber(fibaro:getValue(tonumber(entry[GEA.keys["PARAMS"]][i][2]), "currentProgramID")) ~= tonumber(entry[GEA.keys["PARAMS"]][i][3])) then     
-            fibaro:call(entry[GEA.keys["PARAMS"]][i][2], "startProgram", entry[GEA.keys["PARAMS"]][i][3])
-          end
-
-          GEA.log("sendActions", entry, "!ACTION! : startProgram " .. entry[GEA.keys["PARAMS"]][i][2] .. ", program = " .. entry[GEA.keys["PARAMS"]][i][3])
-
-        elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "value") then
-          local id = GEA.getId(entry, entry[GEA.keys["PARAMS"]][i])
-
-          if (id > 0) then
-            if (#entry[GEA.keys["PARAMS"]][i] > 2) then
-              fibaro:call(id, "setValue", entry[GEA.keys["PARAMS"]][i][3])
-              GEA.log("sendActions", entry, "!ACTION! : setValue " .. entry[GEA.keys["PARAMS"]][i][3], true)
-            else
-              fibaro:call(id, "setValue", entry[GEA.keys["PARAMS"]][i][2])
-              GEA.log("sendActions", entry, "!ACTION! : setValue " .. entry[GEA.keys["PARAMS"]][i][2], true)          
+              GEA.log("sendActions", entry, "!ACTION! : " .. paramsIterator[1] , true)
             end
           end
+        
+          if (lowerValue == "global" and #paramsIterator > 2) then
+            local value = string.match(paramsIterator[3], "(%d+)")
 
-        elseif (type(entry[GEA.keys["PARAMS"]][i]) == "table" and string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "open" or string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "close") then
-          local id = GEA.getId(entry, entry[GEA.keys["PARAMS"]][i])
+            if (GEA.match(paramsIterator[3], "inc%+")) then
+              local number = tonumber(fibaro:getGlobalValue(paramsIterator[2]))
 
-          if (id > 0) then
-            local pourc = 100
-
-            if (#entry[GEA.keys["PARAMS"]][i] > 2) then
-              if (string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "close") then 
-                pourc = pourc - entry[GEA.keys["PARAMS"]][i][3] 
+              if (type(value) ~= "nil") then 
+                fibaro:setGlobal(paramsIterator[2], number + value) 
               else 
-                pourc = entry[GEA.keys["PARAMS"]][i][3] 
+                fibaro:setGlobal(paramsIterator[2], number + 1) 
               end
+            elseif (GEA.match(paramsIterator[3], "dec%-")) then
+              local number = tonumber(fibaro:getGlobalValue(paramsIterator[2]))
 
-              fibaro:call(id, "setValue", pourc)
-              GEA.log("sendActions", entry, "!ACTION! : setValue " .. pourc, true)
-
-            elseif (#entry[GEA.keys["PARAMS"]][i] > 1) then
-              if (string.lower(entry[GEA.keys["PARAMS"]][i][1]) == "close") then 
-                pourc = pourc - entry[GEA.keys["PARAMS"]][i][2] 
+              if (type(value) ~= "nil") then 
+                fibaro:setGlobal(paramsIterator[2], number - value) 
               else 
-                pourc = entry[GEA.keys["PARAMS"]][i][2] 
+                fibaro:setGlobal(paramsIterator[2], number - 1) 
+              end
+            else
+              fibaro:setGlobal(paramsIterator[2], GEA.getMessage(entry,paramsIterator[3]))
+            end
+
+            GEA.log("sendActions", entry, "!ACTION! : setGlobal " .. paramsIterator[2] .. "," .. GEA.getMessage(entry, paramsIterator[3]) , true)
+
+          elseif (lowerValue == "portable" and #paramsIterator > 1) then
+            fibaro:call(tonumber(paramsIterator[2]), "sendPush", GEA.getMessage(entry, nil))
+            GEA.log("sendActions", entry, "!ACTION! : pushed to " .. paramsIterator[2], true)
+            pushed = true
+
+          elseif (lowerValue == "email" and #paramsIterator > 1) then
+            local sujet = "GEA Notification"
+
+            if (#paramsIterator > 2) then
+              sujet = paramsIterator[3]
+            end
+
+            fibaro:call(tonumber(paramsIterator[2]), "sendEmail", GEA.getMessage(entry, sujet), GEA.getMessage(entry, nil))
+            GEA.log("sendActions", entry, "!ACTION! : email to " .. paramsIterator[2], true)
+
+          elseif (lowerValue == "picture" and #paramsIterator > 2) then
+            local destinataire = tonumber(paramsIterator[3])
+            local camera       = tonumber(paramsIterator[2])
+
+            fibaro:call(camera, "sendPhotoToUser", destinataire)
+            GEA.log("sendActions", entry, "!ACTION! : email picture from camera " .. camera .. " to " .. destinataire, true)
+
+          elseif (lowerValue == "scenario" and #paramsIterator > 1) then
+            fibaro:startScene(paramsIterator[2])
+            GEA.log("sendActions", entry, "!ACTION! : Scene " .. paramsIterator[2], true)
+
+          elseif (lowerValue == "stopscenario" and #paramsIterator > 1) then
+            if (fibaro:countScenes(paramsIterator[2])) then
+                fibaro:killScene(paramsIterator[2])
+                GEA.log("sendActions", entry, "!ACTION! : Stop Scene " .. paramsIterator[2], true)
+            else
+                GEA.log("sendActions", entry, "!ACTION! : No Stop Scene " .. paramsIterator[2], true)
+            end
+
+          elseif (lowerValue == "enablescenario" and #paramsIterator > 1) then
+            fibaro:setSceneEnabled(paramsIterator[2], true)
+            GEA.log("sendActions", entry, "!ACTION! : Scene enabled " .. paramsIterator[2], true)
+
+          elseif (lowerValue == "disablescenario" and #paramsIterator > 1) then
+            fibaro:setSceneEnabled(paramsIterator[2], false)
+            GEA.log("sendActions", entry, "!ACTION! : Scene disabled " .. paramsIterator[2], true)
+
+          elseif (lowerValue == "function") then
+            local status, err = pcall(paramsIterator[2])
+
+            if (status) then
+              GEA.log("sendActions", entry, "!ACTION! : Function OK",  true)
+            else
+              GEA.log("sendActions", entry, "!ACTION! : Function " .. tostring(err or "Inconnu."), true)
+            end
+
+          elseif (lowerValue == "setarmed" and #paramsIterator > 1) then
+            fibaro:call(paramsIterator[2], "setArmed", 1)
+            GEA.log("sendActions", entry, "!ACTION! : setArmed " .. paramsIterator[2], true)
+
+          elseif (lowerValue == "setdisarmed" and #paramsIterator > 1) then
+            fibaro:call(paramsIterator[2], "setArmed", 0)
+            GEA.log("sendActions", entry, "!ACTION! : setDisarmed " .. paramsIterator[2], true)
+
+          elseif (lowerValue == "currenticon" and #paramsIterator > 2) then
+            fibaro:call(paramsIterator[2], "setProperty", "currentIcon", tostring(paramsIterator[3]))
+            GEA.log("sendActions", entry, "!ACTION! : CurrentIcon " .. paramsIterator[2], true)
+
+          elseif (lowerValue == "copyglobal" and #paramsIterator > 2) then
+            fibaro:setGlobal(paramsIterator[3], fibaro:getGlobalValue(paramsIterator[2]))
+            GEA.log("sendActions", entry, "!ACTION! : CopyGlobal " .. paramsIterator[2], true) 
+
+          elseif (lowerValue == "restarttask" and #paramsIterator > 1) then
+            GEA.addOrRemoveTask("R", paramsIterator[2], true)
+            GEA.log("sendActions", entry, "!ACTION! : Restart " .. paramsIterator[2], true)
+
+          elseif (lowerValue == "stoptask" and #paramsIterator > 1) then
+            GEA.addOrRemoveTask("S", paramsIterator[2], true)
+            GEA.log("sendActions", entry, "!ACTION! : StopTask " .. paramsIterator[2], true)
+
+          elseif (lowerValue == "wakeup" and #paramsIterator > 1) then
+            fibaro:wakeUpDeadDevice(paramsIterator[2])
+            GEA.log("sendActions", entry, "!ACTION! : WakeUp " .. paramsIterator[2], true)
+
+          elseif (lowerValue == "virtualdevice" and #paramsIterator > 2) then
+            fibaro:call(paramsIterator[2], "pressButton", tostring(paramsIterator[3]))
+            GEA.log("sendActions", entry, "!ACTION! : VirtualDevice " .. paramsIterator[2] .. "," .. paramsIterator[3], true)
+
+          elseif (lowerValue == "slider" and #paramsIterator > 3) then
+            fibaro:call(paramsIterator[2], "setSlider", paramsIterator[3], paramsIterator[4])
+            GEA.log("sendActions", entry, "!ACTION! : Slider " .. paramsIterator[2] .. "," .. paramsIterator[3] .. "=" .. paramsIterator[4], true)
+
+          elseif (lowerValue == "label" and #paramsIterator > 3) then
+            fibaro:call(paramsIterator[2], "setProperty", "ui."..paramsIterator[3] .. ".value", GEA.getMessage(entry, paramsIterator[4]))
+            GEA.log("sendActions", entry, "!ACTION! : Label " .. paramsIterator[2] .. "," .. paramsIterator[3]  .. " = " ..  GEA.getMessage(entry, paramsIterator[4]), true)
+
+          elseif (lowerValue == "rgb" and #paramsIterator > 5) then
+            -- added by Shyrka973
+            if (paramsIterator[3] == -1 or paramsIterator[4] == -1 or paramsIterator[5] == -1 or paramsIterator[6] == -1) then
+              if (paramsIterator[3] ~= -1) then
+                fibaro:call(paramsIterator[2], "setR", paramsIterator[3])
               end
 
-              fibaro:call(id, "setValue", pourc)
-              GEA.log("sendActions", entry, "!ACTION! : setValue " .. pourc, true)
+              if (paramsIterator[4] ~= -1) then
+                fibaro:call(paramsIterator[2], "setG", paramsIterator[4])
+              end
 
+              if (paramsIterator[5] ~= -1) then
+                fibaro:call(paramsIterator[2], "setB", paramsIterator[5])
+              end
+
+              if (paramsIterator[6] ~= -1) then
+                fibaro:call(paramsIterator[2], "setW", paramsIterator[6])
+              end
             else
-              fibaro:call(id, entry[GEA.keys["PARAMS"]][i][1])
-              GEA.log("sendActions", entry, "!ACTION! :  " .. entry[GEA.keys["PARAMS"]][i][1], true)
+              fibaro:call(paramsIterator[2], "setColor", paramsIterator[3], paramsIterator[4], paramsIterator[5], paramsIterator[6])
+            end
 
+            GEA.log("sendActions", entry, "!ACTION! : RGB " .. paramsIterator[2] .. ", Color = " .. paramsIterator[3]  .. "," .. paramsIterator[4] .. "," .. paramsIterator[5] .. "," .. paramsIterator[6])
+
+          elseif (lowerValue == "program" and #paramsIterator > 2) then
+            if (tonumber(fibaro:getValue(tonumber(paramsIterator[2]), "currentProgramID")) ~= tonumber(paramsIterator[3])) then     
+              fibaro:call(paramsIterator[2], "startProgram", paramsIterator[3])
+            end
+
+            GEA.log("sendActions", entry, "!ACTION! : startProgram " .. paramsIterator[2] .. ", program = " .. paramsIterator[3])
+
+          elseif (lowerValue == "value") then
+            local id = GEA.getId(entry, paramsIterator)
+
+            if (id > 0) then
+              if (#paramsIterator > 2) then
+                fibaro:call(id, "setValue", paramsIterator[3])
+                GEA.log("sendActions", entry, "!ACTION! : setValue " .. paramsIterator[3], true)
+              else
+                fibaro:call(id, "setValue", paramsIterator[2])
+                GEA.log("sendActions", entry, "!ACTION! : setValue " .. paramsIterator[2], true)          
+              end
+            end
+
+          elseif (lowerValue == "open" or lowerValue == "close") then
+            local id = GEA.getId(entry, paramsIterator)
+
+            if (id > 0) then
+              local pourc = 100
+
+              if (#paramsIterator > 2) then
+                if (lowerValue == "close") then 
+                  pourc = pourc - paramsIterator[3] 
+                else 
+                  pourc = paramsIterator[3] 
+                end
+
+                fibaro:call(id, "setValue", pourc)
+                GEA.log("sendActions", entry, "!ACTION! : setValue " .. pourc, true)
+
+              elseif (#paramsIterator > 1) then
+                if (lowerValue == "close") then 
+                  pourc = pourc - paramsIterator[2] 
+                else 
+                  pourc = paramsIterator[2] 
+                end
+
+                fibaro:call(id, "setValue", pourc)
+                GEA.log("sendActions", entry, "!ACTION! : setValue " .. pourc, true)
+
+              else
+                fibaro:call(id, paramsIterator[1])
+                GEA.log("sendActions", entry, "!ACTION! :  " .. paramsIterator[1], true)
+
+              end
             end
           end
         end
@@ -1530,18 +1582,18 @@ if (not GEA) then
   GEA.getId = function(entry, param)
     local id = 0
 
-    if (param and type(param)=="table" and #param > 1 and (string.lower(param[1])=="turnoff" or string.lower(param[1])=="turnon" or string.lower(param[1])=="switch") ) then
+    if (param and type(param) == "table" and #param > 1 and (string.lower(param[1]) == "turnoff" or string.lower(param[1]) == "turnon" or string.lower(param[1]) == "switch")) then
       id = tonumber(param[2])
-    elseif (param and type(param)=="table" and #param > 2 and (string.lower(param[1])=="value" or string.lower(param[1])=="open" or string.lower(param[1]) == "close") ) then
+    elseif (param and type(param) == "table" and #param > 2 and (string.lower(param[1]) == "value" or string.lower(param[1]) == "open" or string.lower(param[1]) == "close")) then
       id = tonumber(param[2])
     elseif (type(entry[GEA.keys["ID"]]) == "number") then
       id = entry[GEA.keys["ID"]]
-    elseif ( type(entry[GEA.keys["ID"]]) == "table" and string.lower(entry[GEA.keys["ID"]][1]) == "sensor+" or string.lower(entry[GEA.keys["ID"]][1]) == "sensor-" or string.lower(entry[GEA.keys["ID"]][1]) == "value-" or string.lower(entry[GEA.keys["ID"]][1]) == "value+" or string.lower(entry[GEA.keys["ID"]][1]) == "dead") then
+    elseif (type(entry[GEA.keys["ID"]]) == "table" and string.lower(entry[GEA.keys["ID"]][1]) == "sensor+" or string.lower(entry[GEA.keys["ID"]][1]) == "sensor-" or string.lower(entry[GEA.keys["ID"]][1]) == "value-" or string.lower(entry[GEA.keys["ID"]][1]) == "value+" or string.lower(entry[GEA.keys["ID"]][1]) == "dead") then
       id = tonumber(entry[GEA.keys["ID"]][2])
     end
 
     if (id == 0) then
-      fibaro:debug("pas trouve")
+      fibaro:debug(GEA.translate[GEA.language]["DEVICE_NOT_FOUND"])
     end
 
     return id
@@ -1559,7 +1611,7 @@ if (not GEA) then
       if (fibaro:getGlobalValue(GEA.getGlobalForActivation[1]) == GEA.getGlobalForActivation[2]) then
         continue = true
       else 
-        GEA.log("Run", nil, GEA.translate[GEA.language]["GEA_SUSPENDED"] .. " " .. GEA.getGlobalForActivation[1] .. " "..GEA.translate[GEA.language]["VALUE"].." " .. fibaro:getGlobalValue(GEA.getGlobalForActivation[1]) .. " "..GEA.translate[GEA.language]["REQUERIED"].." " ..GEA.getGlobalForActivation[2], true)
+        GEA.log("Run", nil, GEA.translate[GEA.language]["GEA_SUSPENDED"] .. " " .. GEA.getGlobalForActivation[1] .. " " .. GEA.translate[GEA.language]["VALUE"] .. " " .. fibaro:getGlobalValue(GEA.getGlobalForActivation[1]) .. " " .. GEA.translate[GEA.language]["REQUIRED"] .. " " .. GEA.getGlobalForActivation[2], true)
       end
     end
 
@@ -1604,9 +1656,9 @@ if (not GEA) then
       end
     
       local delai      = GEA.checkEvery
-      local first      = 1
-      local firstofall = true
-      local allstart   = os.time()
+      local count      = 1
+      local firstOfAll = true
+      local allStart   = os.time()
       
       while true do
         GEA.log(GEA.translate[GEA.language]["RUN"], nil, GEA.translate[GEA.language]["SLEEPING"] .. " " .. GEA.checkEvery .. " " .. GEA.translate[GEA.language]["SECONDS"], false)
@@ -1617,20 +1669,20 @@ if (not GEA) then
         local stop = GEA.checkAllToDo(nbElement) 
         local diff = (stop - start) -- / 1000
 
-        if (firstofall) then 
+        if (firstOfAll) then 
           diff       = diff * 2 
-          firstofall = false
+          firstOfAll = false
         end
 
         delai = GEA.checkEvery - diff
-
-        if (first >= 10) then 
-          local msg = GEA.translate[GEA.language]["RUN_FOR"] .. diff .. "s " .. GEA.translate[GEA.language]["RUN_NEW"] .. delai .. "s / ".. GEA.translate[GEA.language]["RUN_SINCE"] .. " " .. GEA.getDureeInString(os.time() - allstart)[1]
+        -- Log toutes les 20 checks que GEA tourne
+        if (count >= 20) then 
+          local msg = GEA.translate[GEA.language]["RUN_FOR"] .. diff .. "s " .. GEA.translate[GEA.language]["RUN_NEW"] .. delai .. "s / ".. GEA.translate[GEA.language]["RUN_SINCE"] .. " " .. GEA.getDureeInString(os.time() - allStart)[1]
           fibaro:debug("<span style=\"color:CadetBlue; padding-left:125px; display:inline-block; width:80%; margin-top:-18px; padding-top:-18px; text-align:left;\">" .. msg .. "</span>")
-          first = 0
+          count = 0
         end
 
-        first = first + 1
+        count = count + 1
       end
     else
       GEA.checkAllToDo(nbElement)   
