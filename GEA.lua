@@ -23,7 +23,7 @@
 -- Version : 5.40
 -- Special Thanks to :
 -- jompa68, Fredric, Diuck, Domodial, moicphil, lolomail, byackee,
--- JossAlf, Did,  sebcbien, chris6783 and all other guy from Domotique-fibaro.fr
+-- JossAlf, Did,  sebcbien, chris6783, tibahut and all other guy from Domotique-fibaro.fr
 -- ------------------------------------------------------------
 -- Historique / History
 -- ------------------------------------------------------------
