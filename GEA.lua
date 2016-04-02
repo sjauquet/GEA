@@ -275,7 +275,7 @@ if (not GEA) then
         GEA.insert(entry)
         GEA.log("Add Global", entry, GEA.translate[GEA.language]["ADDED_DIRECT"], true, "grey")
       end
-    -- dirty fix fox beta 4.082 GEA.source["type"] == "event"
+    -- dirty fix fox beta 4.081 GEA.source["type"] == "event"
     elseif ((GEA.source["type"] == "property" or GEA.source["type"] == "event") and tonumber(entry[GEA.keys["SECONDES"]]) < 0) then
       local id = 0
 
@@ -290,7 +290,7 @@ if (not GEA) then
           end
         end
       end
-      -- dirty fox for beta 4.082 GEA.source["type"] == "event"
+      -- dirty fox for beta 4.081 GEA.source["type"] == "event"
       if ((GEA.source["type"] == "property" and tonumber(id) == tonumber(GEA.source["deviceID"])) or (GEA.source["type"] == "event" and tonumber(id) == tonumber(GEA.source.event.data.id))) then
         GEA.insert(entry)
         GEA.log("Add Property", entry, GEA.translate[GEA.language]["ADDED_DIRECT"], true, "grey")
