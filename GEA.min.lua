@@ -9,7 +9,7 @@
 -- ==================================================
 -- GEA : Gestionnaire d'Evénements Automatique
 -- ==================================================
--- [FR] Scénario permettant de contrôler si un périphérique est 
+-- [FR] Scénario permettant de contrôler si un périphérique est
 -- activé depuis trop longtemps ou lancer un push d'avertissement.
 -- Ce scénario permet une annotation plus simple que le code LUA
 -- il nécessite néanmoins quelques connaissances.
@@ -34,7 +34,7 @@
 
 -- Paramétrage de GEA / GEA configuration
 function config()
-  GEA.isVersionFour           = true -- On est en version 4.017 Beta ou supérieure / 
+  GEA.isVersionFour           = true -- On est en version 4.017 Beta ou supérieure /
   GEA.language                = "FR" -- Votre langue : FR (default) / Your language : EN
   GEA.checkEvery              = 30 -- On vérifie toutes les X secondes  (default : 30) / Check every X seconds
   GEA.portables               = {179} -- Liste des portables devant recevoir une notification {70, 71} / Smartphones you want to be notified
@@ -44,13 +44,13 @@ function config()
   GEA.optimize                = GEA.typeOptimize["IMMEDIATE_ONLY"]
   -- option : GEA.typeOptimize["NONE"], GEA.typeOptimize["IMMEDIATE_ONLY"], GEA.typeOptimize["ALL"]
   -- permet d'optimiser les soucis liés au getName et getRoom de fibaro mais n'affiche plus le nom des modules concernés.
-end 
+end
 
 
 
 -- Ajouter ici les événements à exécuter / Add here events to schedule
 -- Une liste d'exemples est disponible dans un fichier annexe samples.lua / A samples list is available in another file called samples.lua
-function setEvents() 
+function setEvents()
 
 
 
