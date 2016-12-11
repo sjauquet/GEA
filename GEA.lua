@@ -885,7 +885,7 @@ if (not GEA) then
           result  = ((os.time() - tonumber(fibaro:getModificationTime(tonumber(id), "value"))) < GEA.checkEvery)
         end
 
-      elseif (GEA.match(type, "dimmable_light|binary_light|rgb_driver|com.fibaro.FGRGBW441M|com.fibaro.multilevelSwitch|com.fibaro.binarySwitch")) then
+      elseif (GEA.match(type, "dimmable_light|binary_light|rgb_driver|com.fibaro.FGRGBW441M|com.fibaro.multilevelSwitch|com.fibaro.binarySwitch|com.fibaro.FGD212")) then
         if (GEA.match(type, "rgb_driver")) then
           -- verison 3.x
           result = (tonumber(fibaro:getValue(tonumber(id), "value")) > 0 ) or tonumber(fibaro:getValue(tonumber(id), "currentProgramID")) > 0
